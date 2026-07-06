@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>:: MATTHEW.EXE ::</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💾</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- scanline + grid overlay -->
+<div class="scanlines"></div>
+<div class="crt-flicker"></div>
+
+<!-- marquee ticker -->
+<div class="marquee-bar">
+  <div class="marquee-track">
+    <span>★ WELCOME TO MY CORNER OF THE WEB ★ BEST VIEWED AT 1024x768 ★ NOW WITH 100% MORE NEON ★ SIGN MY GUESTBOOK ★ UNDER CONSTRUCTION FOREVER ★ WELCOME TO MY CORNER OF THE WEB ★ BEST VIEWED AT 1024x768 ★ NOW WITH 100% MORE NEON ★ SIGN MY GUESTBOOK ★ UNDER CONSTRUCTION FOREVER ★</span>
+  </div>
+</div>
+
+<nav class="nav-window">
+  <div class="win-titlebar">
+    <span>nav.exe</span>
+    <div class="win-dots"><i></i><i></i><i></i></div>
+  </div>
+  <div class="nav-links">
+    <a href="#home">HOME</a>
+    <a href="#about">ABOUT</a>
+    <a href="#interests">INTERESTS</a>
+    <a href="#links">LINKS</a>
+    <a href="#guestbook">GUESTBOOK</a>
+  </div>
+</nav>
+
+<main>
+
+  <section id="home" class="hero">
+    <div class="grid-floor"></div>
+    <h1 class="glitch" data-text="MATTHEW.EXE">MATTHEW.EXE</h1>
+    <p class="subtitle"><span id="typed"></span><span class="cursor">_</span></p>
+    <div class="badge-row">
+      <span class="chip">◆ ONLINE NOW ◆</span>
+      <span class="chip">EST. <span id="year"></span></span>
+      <span class="chip">v1.0</span>
+    </div>
+  </section>
+
+  <section id="about" class="panel">
+    <h2>// ABOUT ME</h2>
+    <div class="window">
+      <div class="win-titlebar"><span>about.txt</span><div class="win-dots"><i></i><i></i><i></i></div></div>
+      <div class="win-body">
+        <p>
+          [EDIT ME] hey, i'm matthew. this is my little slice of the old web —
+          replace this paragraph with your actual bio. talk about who you are,
+          what you're into, what you're building, whatever you want strangers
+          on the internet to know about you.
+        </p>
+        <p>
+          [EDIT ME] add a second paragraph here if you want — hobbies, current
+          projects, favorite games, music, anything. this whole site is a
+          template, so nothing here is precious. break it, remix it, make it
+          yours.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="interests" class="panel">
+    <h2>// INTERESTS</h2>
+    <div class="badge-grid">
+      <div class="badge-88x31">CODING</div>
+      <div class="badge-88x31">MUSIC</div>
+      <div class="badge-88x31">GAMING</div>
+      <div class="badge-88x31">MOVIES</div>
+      <div class="badge-88x31">AI / ML</div>
+      <div class="badge-88x31">RETRO WEB</div>
+      <div class="badge-88x31">[EDIT ME]</div>
+      <div class="badge-88x31">[EDIT ME]</div>
+    </div>
+    <p class="hint">↑ swap these tiles for whatever you're actually into. classic webring-badge energy on purpose.</p>
+  </section>
+
+  <section id="links" class="panel">
+    <h2>// LINKS</h2>
+    <div class="window">
+      <div class="win-titlebar"><span>links.exe</span><div class="win-dots"><i></i><i></i><i></i></div></div>
+      <div class="win-body links-list">
+        <a href="#" class="link-row"><span class="link-icon">▶</span> GitHub <span class="arrow">→</span></a>
+        <a href="#" class="link-row"><span class="link-icon">▶</span> Twitter / X <span class="arrow">→</span></a>
+        <a href="#" class="link-row"><span class="link-icon">▶</span> YouTube <span class="arrow">→</span></a>
+        <a href="#" class="link-row"><span class="link-icon">▶</span> Email Me <span class="arrow">→</span></a>
+        <a href="#" class="link-row"><span class="link-icon">▶</span> [EDIT ME: another link] <span class="arrow">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section id="guestbook" class="panel">
+    <h2>// GUESTBOOK</h2>
+    <div class="window">
+      <div class="win-titlebar"><span>guestbook.exe</span><div class="win-dots"><i></i><i></i><i></i></div></div>
+      <div class="win-body">
+        <p class="hint" style="margin-top:0">saved locally in your browser only — Neocities is static hosting, so this doesn't sync between visitors unless you wire it up to a real backend later.</p>
+        <form id="guestbook-form">
+          <input type="text" id="gb-name" placeholder="your name" maxlength="30" required>
+          <textarea id="gb-message" placeholder="leave a message..." maxlength="200" required></textarea>
+          <button type="submit">SIGN GUESTBOOK</button>
+        </form>
+        <div id="gb-entries"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="counter">
+    <span class="counter-label">VISITOR COUNT</span>
+    <div class="counter-digits" id="counter-digits"></div>
+  </div>
+  <p class="footer-tags">
+    <span class="tag">NO AI GENERATED SPARKLES</span>
+    <span class="tag">HTML5 &amp; CSS3</span>
+    <span class="tag">MADE ON NEOCITIES</span>
+  </p>
+  <p class="under-construction">🚧 PERPETUALLY UNDER CONSTRUCTION 🚧</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
