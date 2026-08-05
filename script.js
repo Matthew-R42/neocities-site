@@ -1,8 +1,9 @@
 // ---------- typing effect ----------
 const phrases = [
   "welcome to my little corner of the internet.",
-  "[EDIT ME] add your own rotating taglines here.",
-  "built with html, css, and pure nostalgia.",
+  "i make videos about AI safety.",
+  "i rate pavement for a hobby. scroll down.",
+  "1 is glass. 5 is go around.",
   "no frameworks were harmed in the making of this site.",
 ];
 
@@ -72,7 +73,7 @@ function renderEntries() {
   if (!entriesEl) return;
 
   if (entries.length === 0) {
-    entriesEl.innerHTML = '<p class="gb-empty">no entries yet — be the first to sign!</p>';
+    entriesEl.innerHTML = '<p class="gb-empty">no entries yet, be the first to sign!</p>';
     return;
   }
 

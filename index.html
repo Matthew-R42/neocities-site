@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>:: MATTHEW.EXE ::</title>
+<meta name="description" content="Matthew's homepage. AI safety video, and RollerMap: a map for rating street pavement quality for rollerblading.">
+<meta property="og:title" content="MATTHEW.EXE">
+<meta property="og:description" content="AI safety video, and RollerMap: a map for rating street pavement quality for rollerblading.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mtw4244.work/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💾</text></svg>">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -16,7 +21,7 @@
 <!-- marquee ticker -->
 <div class="marquee-bar">
   <div class="marquee-track">
-    <span>★ WELCOME TO MY CORNER OF THE WEB ★ BEST VIEWED AT 1024x768 ★ NOW WITH 100% MORE NEON ★ SIGN MY GUESTBOOK ★ UNDER CONSTRUCTION FOREVER ★ WELCOME TO MY CORNER OF THE WEB ★ BEST VIEWED AT 1024x768 ★ NOW WITH 100% MORE NEON ★ SIGN MY GUESTBOOK ★ UNDER CONSTRUCTION FOREVER ★</span>
+    <span>★ WELCOME TO MY CORNER OF THE WEB ★ BEST VIEWED AT 1024x768 ★ NOW RATING PAVEMENT IN SYDNEY ★ 1 IS GLASS, 5 IS AVOID ★ SIGN MY GUESTBOOK ★ UNDER CONSTRUCTION FOREVER ★ WELCOME TO MY CORNER OF THE WEB ★ BEST VIEWED AT 1024x768 ★ NOW RATING PAVEMENT IN SYDNEY ★ 1 IS GLASS, 5 IS AVOID ★ SIGN MY GUESTBOOK ★ UNDER CONSTRUCTION FOREVER ★</span>
   </div>
 </div>
 
@@ -28,6 +33,7 @@
   <div class="nav-links">
     <a href="#home">HOME</a>
     <a href="#about">ABOUT</a>
+    <a href="#rollermap">ROLLERMAP</a>
     <a href="#interests">INTERESTS</a>
     <a href="#links">LINKS</a>
     <a href="#guestbook">GUESTBOOK</a>
@@ -53,16 +59,71 @@
       <div class="win-titlebar"><span>about.txt</span><div class="win-dots"><i></i><i></i><i></i></div></div>
       <div class="win-body">
         <p>
-          [EDIT ME] hey, i'm matthew. this is my little slice of the old web —
-          replace this paragraph with your actual bio. talk about who you are,
-          what you're into, what you're building, whatever you want strangers
-          on the internet to know about you.
+          hey, i'm matthew. i make short-form video about AI safety and
+          alignment, and i build the small tools that make that work possible.
+          mostly python and shell wrapped around ffmpeg, plus whatever else the
+          job needs.
         </p>
         <p>
-          [EDIT ME] add a second paragraph here if you want — hobbies, current
-          projects, favorite games, music, anything. this whole site is a
-          template, so nothing here is precious. break it, remix it, make it
-          yours.
+          when i'm not doing that i'm on rollerblades somewhere in sydney,
+          which is how the project below happened. scroll down for
+          <strong>RollerMap</strong>, a map that rates how bad the pavement is.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="rollermap" class="panel">
+    <h2>// ROLLERMAP</h2>
+    <div class="window">
+      <div class="win-titlebar"><span>rollermap.exe</span><div class="win-dots"><i></i><i></i><i></i></div></div>
+      <div class="win-body">
+        <p class="proj-tagline">a map for rating how bad the pavement is.</p>
+        <p>
+          a mobile-first web app for rating street surface quality for
+          rollerblading, or skateboarding, or anything else with small hard
+          wheels. tap blocks on a map, rate them 1 (glass) to 5 (avoid), and
+          build a shared skate map with friends.
+        </p>
+        <p>
+          built around sydney, australia, but it works anywhere OpenStreetMap
+          does. street geometry is fetched on demand from Overpass as you pan
+          the map.
+        </p>
+
+        <h3 class="proj-sub">THE SCALE</h3>
+        <div class="scale-grid">
+          <div class="scale-row"><span class="swatch s1">1</span><span class="scale-name">EXCELLENT</span><span class="scale-desc">glass. free speed.</span></div>
+          <div class="scale-row"><span class="swatch s2">2</span><span class="scale-name">GOOD</span><span class="scale-desc">smooth enough not to think about it.</span></div>
+          <div class="scale-row"><span class="swatch s25">2.5</span><span class="scale-name">PART-GOOD</span><span class="scale-desc">partly smooth, partly rough. drawn striped.</span></div>
+          <div class="scale-row"><span class="swatch s3">3</span><span class="scale-name">OKAY</span><span class="scale-desc">rideable. you'll feel it.</span></div>
+          <div class="scale-row"><span class="swatch s4">4</span><span class="scale-name">ROUGH</span><span class="scale-desc">teeth-rattling. doable if you must.</span></div>
+          <div class="scale-row"><span class="swatch s5">5</span><span class="scale-name">AVOID</span><span class="scale-desc">go around.</span></div>
+        </div>
+
+        <h3 class="proj-sub">WHAT IT DOES</h3>
+        <ul class="feat-list">
+          <li><strong>per-block ratings.</strong> streets are split server-side into blocks, the run between two cross-streets. tap to select one, multi-select, or grab a whole street at once.</li>
+          <li><strong>collaborative.</strong> multiple people share one map. every marking is attributed ("rated by alex, 3d ago") and every write lands in an append-only audit log, so the full history is recoverable.</li>
+          <li><strong>rate by voice or GPS.</strong> an endpoint resolves a spoken street and cross-street pair, or a raw lat/lon, to block ids and rates them. built for hands-free use while actually skating.</li>
+          <li><strong>installable PWA.</strong> offline app shell via a service worker, cached street geometry in IndexedDB, add-to-home-screen on iOS and android.</li>
+          <li><strong>durable.</strong> SQLite with daily and pre-migration backups, append-only event log, preview-first disaster recovery.</li>
+        </ul>
+
+        <h3 class="proj-sub">STACK</h3>
+        <div class="stack-row">
+          <span class="stack-chip">FastAPI</span>
+          <span class="stack-chip">SQLite</span>
+          <span class="stack-chip">Leaflet</span>
+          <span class="stack-chip">OpenStreetMap</span>
+          <span class="stack-chip">Overpass API</span>
+          <span class="stack-chip">Docker</span>
+          <span class="stack-chip">NO BUILD STEP</span>
+        </div>
+        <p class="hint">
+          single-file leaflet frontend, python backend, no bundler and no npm
+          install. street data from OpenStreetMap contributors via Overpass,
+          basemap tiles from CARTO. repo is private for now.
         </p>
       </div>
     </div>
@@ -71,16 +132,15 @@
   <section id="interests" class="panel">
     <h2>// INTERESTS</h2>
     <div class="badge-grid">
-      <div class="badge-88x31">CODING</div>
-      <div class="badge-88x31">MUSIC</div>
-      <div class="badge-88x31">GAMING</div>
-      <div class="badge-88x31">MOVIES</div>
-      <div class="badge-88x31">AI / ML</div>
+      <div class="badge-88x31">ROLLERBLADING</div>
+      <div class="badge-88x31">AI SAFETY</div>
+      <div class="badge-88x31">ALIGNMENT</div>
+      <div class="badge-88x31">PYTHON</div>
+      <div class="badge-88x31">FFMPEG</div>
+      <div class="badge-88x31">OPENSTREETMAP</div>
+      <div class="badge-88x31">SHORT-FORM VIDEO</div>
       <div class="badge-88x31">RETRO WEB</div>
-      <div class="badge-88x31">[EDIT ME]</div>
-      <div class="badge-88x31">[EDIT ME]</div>
     </div>
-    <p class="hint">↑ swap these tiles for whatever you're actually into. classic webring-badge energy on purpose.</p>
   </section>
 
   <section id="links" class="panel">
@@ -88,11 +148,9 @@
     <div class="window">
       <div class="win-titlebar"><span>links.exe</span><div class="win-dots"><i></i><i></i><i></i></div></div>
       <div class="win-body links-list">
-        <a href="#" class="link-row"><span class="link-icon">▶</span> GitHub <span class="arrow">→</span></a>
-        <a href="#" class="link-row"><span class="link-icon">▶</span> Twitter / X <span class="arrow">→</span></a>
-        <a href="#" class="link-row"><span class="link-icon">▶</span> YouTube <span class="arrow">→</span></a>
-        <a href="#" class="link-row"><span class="link-icon">▶</span> Email Me <span class="arrow">→</span></a>
-        <a href="#" class="link-row"><span class="link-icon">▶</span> [EDIT ME: another link] <span class="arrow">→</span></a>
+        <a href="https://github.com/Matthew-R42" class="link-row" target="_blank" rel="noopener"><span class="link-icon">▶</span> GitHub <span class="arrow">→</span></a>
+        <a href="#rollermap" class="link-row"><span class="link-icon">▶</span> RollerMap <span class="arrow">→</span></a>
+        <a href="https://www.openstreetmap.org/copyright" class="link-row" target="_blank" rel="noopener"><span class="link-icon">▶</span> OpenStreetMap <span class="arrow">→</span></a>
       </div>
     </div>
   </section>
@@ -102,7 +160,7 @@
     <div class="window">
       <div class="win-titlebar"><span>guestbook.exe</span><div class="win-dots"><i></i><i></i><i></i></div></div>
       <div class="win-body">
-        <p class="hint" style="margin-top:0">saved locally in your browser only — Neocities is static hosting, so this doesn't sync between visitors unless you wire it up to a real backend later.</p>
+        <p class="hint" style="margin-top:0">saved locally in your browser only. this is a static site, so entries don't sync between visitors.</p>
         <form id="guestbook-form">
           <input type="text" id="gb-name" placeholder="your name" maxlength="30" required>
           <textarea id="gb-message" placeholder="leave a message..." maxlength="200" required></textarea>
@@ -121,9 +179,9 @@
     <div class="counter-digits" id="counter-digits"></div>
   </div>
   <p class="footer-tags">
-    <span class="tag">NO AI GENERATED SPARKLES</span>
     <span class="tag">HTML5 &amp; CSS3</span>
-    <span class="tag">MADE ON NEOCITIES</span>
+    <span class="tag">NO BUILD STEP</span>
+    <span class="tag">MAP DATA © OPENSTREETMAP</span>
   </p>
   <p class="under-construction">🚧 PERPETUALLY UNDER CONSTRUCTION 🚧</p>
 </footer>

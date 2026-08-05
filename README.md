@@ -1,33 +1,41 @@
-# neocities-site
+# mtw4244.work
 
-A Y2K/cyber-styled personal homepage template: glitch title, scanline/CRT
-overlay, retro window chrome, marquee ticker, 88x31-style interest badges,
-a links list, and a localStorage-backed guestbook + visitor counter (both
-per-browser only, since Neocities is static hosting with no backend).
+Personal homepage, Y2K/cyber styled: glitch title, scanline/CRT overlay, retro
+window chrome, marquee ticker, 88x31-style interest badges, a links list, and a
+localStorage-backed guestbook plus visitor counter (both per-browser only, since
+this is static hosting with no backend).
 
-Everything is self-contained — no external fonts, images, or scripts, so it
-uploads as-is with nothing else to fetch.
+The main content is **RollerMap**, a mobile-first web app for rating street
+pavement quality for rollerblading. The page covers the six-point rating scale,
+what the app does, and the stack.
+
+Everything is self-contained. No external fonts, images, or scripts, so it
+deploys as-is with nothing else to fetch.
 
 ## Files
-- `index.html` — structure/content
-- `style.css` — all styling
-- `script.js` — typing effect, visitor counter, guestbook
+- `index.html` structure and content
+- `style.css` all styling
+- `script.js` typing effect, visitor counter, guestbook
 
-## Before you publish
-Search for `[EDIT ME]` in `index.html` and swap in your real bio, interests,
-and links — everything else is ready to go as styled.
+## Hosting
 
-## Publishing to Neocities
+Live at https://mtw4244.work, served by Cloudflare Pages.
 
-**Easiest — web dashboard:**
-1. Create a free account at https://neocities.org if you don't have one.
-2. Open your site dashboard → drag `index.html`, `style.css`, and `script.js`
-   into the upload area.
+- Pages project: `mtw4244-site` (direct upload, not git-connected)
+- Default URL: https://mtw4244-site.pages.dev
+- Custom domains: `mtw4244.work` and `www.mtw4244.work`, both proxied CNAMEs
+  to `mtw4244-site.pages.dev` in the Cloudflare zone
 
-**CLI (if you want repeatable deploys):**
+## Deploying
+
+Uploads the three files as-is. No build step.
+
+```sh
+export CLOUDFLARE_ACCOUNT_ID=<account id>
+export CLOUDFLARE_API_TOKEN=<scoped token with Pages:Edit>
+npx wrangler pages deploy . --project-name=mtw4244-site --branch=main
 ```
-brew install neocities   # or: npm install -g neocities-cli
-neocities push . --api-key YOUR_API_KEY
-```
-Your API key is under Settings → API on your Neocities site dashboard. Don't
-commit it to git — export it as an env var or pass it inline instead.
+
+Use a scoped API token, not the account-wide Global API Key. Create one at
+Cloudflare → My Profile → API Tokens with the "Cloudflare Pages: Edit"
+permission. Never commit it.
