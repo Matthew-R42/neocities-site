@@ -1,21 +1,19 @@
 # mtw4244.work
 
-Personal homepage, Y2K/cyber styled: glitch title, scanline/CRT overlay, retro
-window chrome, marquee ticker, 88x31-style interest badges, a links list, and a
-localStorage-backed guestbook plus visitor counter (both per-browser only, since
-this is static hosting with no backend).
+Personal homepage. Monochrome, dark, minimal: a short intro and a grid of
+project cards, with each project on its own page.
 
-The main content is **RollerMap**, a mobile-first web app for rating street
-pavement quality for rollerblading. The page covers the six-point rating scale,
-what the app does, and the stack.
-
-Everything is self-contained. No external fonts, images, or scripts, so it
-deploys as-is with nothing else to fetch.
+Everything is self-contained. No external fonts, images, or scripts, and no
+JavaScript at all, so it deploys as-is with nothing else to fetch.
 
 ## Files
-- `index.html` structure and content
-- `style.css` all styling
-- `script.js` typing effect, visitor counter, guestbook
+- `index.html` landing page, intro and project card grid
+- `roller.html` RollerMap project page, served at `/roller`
+- `404.html` not-found page
+- `style.css` all styling, shared by every page
+
+Cloudflare Pages serves `roller.html` at the clean URL `/roller`. Adding a new
+project means adding a page and a card in `index.html`.
 
 ## Hosting
 

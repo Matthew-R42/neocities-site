@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RollerMap</title>
+<meta name="description" content="RollerMap: a mobile-first web app for rating street pavement quality for rollerblading.">
+<meta property="og:title" content="RollerMap">
+<meta property="og:description" content="Rate street pavement quality block by block. 1 for glass, 5 for go around.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mtw4244.work/roller">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23fff%22/></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="topbar">
+    <a class="back" href="/"><span class="chev-l">‹</span> matthew</a>
+    <span class="tag-muted">private repo</span>
+  </header>
+
+  <h1 class="page-title">RollerMap</h1>
+  <p class="page-lede">Rate street pavement quality block by block. 1 for glass, 5 for go around.</p>
+
+  <div class="prose">
+    <p>
+      A mobile-first web app for rating street surface quality for
+      rollerblading, or skateboarding, or anything else with small hard wheels.
+      Tap blocks on a map, rate them, and build a shared skate map with friends.
+    </p>
+    <p>
+      Built around Sydney, but it works anywhere OpenStreetMap does. Street
+      geometry is fetched on demand from Overpass as you pan the map.
+    </p>
+  </div>
+
+  <h2 class="section-label"><span class="dot"></span>The scale</h2>
+  <div class="scale">
+    <div class="scale-row"><span class="sw s1">1</span><span class="sw-name">Excellent</span><span class="sw-desc">Glass. Free speed.</span></div>
+    <div class="scale-row"><span class="sw s2">2</span><span class="sw-name">Good</span><span class="sw-desc">Smooth enough not to think about it.</span></div>
+    <div class="scale-row"><span class="sw s25">2.5</span><span class="sw-name">Part-good</span><span class="sw-desc">Partly smooth, partly rough. Drawn striped.</span></div>
+    <div class="scale-row"><span class="sw s3">3</span><span class="sw-name">Okay</span><span class="sw-desc">Rideable. You'll feel it.</span></div>
+    <div class="scale-row"><span class="sw s4">4</span><span class="sw-name">Rough</span><span class="sw-desc">Teeth-rattling. Doable if you must.</span></div>
+    <div class="scale-row"><span class="sw s5">5</span><span class="sw-name">Avoid</span><span class="sw-desc">Go around.</span></div>
+  </div>
+
+  <h2 class="section-label"><span class="dot"></span>What it does</h2>
+  <dl class="features">
+    <div>
+      <dt>Per-block ratings</dt>
+      <dd>Streets are split server-side into blocks, the run between two cross-streets. Tap to select one, multi-select, or grab a whole street at once.</dd>
+    </div>
+    <div>
+      <dt>Collaborative</dt>
+      <dd>Multiple people share one map. Every marking is attributed, and every write lands in an append-only audit log, so the full history is recoverable.</dd>
+    </div>
+    <div>
+      <dt>Rate by voice or GPS</dt>
+      <dd>An endpoint resolves a spoken street and cross-street pair, or a raw lat/lon, to block ids and rates them. Built for hands-free use while actually skating.</dd>
+    </div>
+    <div>
+      <dt>Installable</dt>
+      <dd>Offline app shell via a service worker, cached street geometry in IndexedDB, add-to-home-screen on iOS and Android.</dd>
+    </div>
+    <div>
+      <dt>Durable</dt>
+      <dd>SQLite with daily and pre-migration backups, append-only event log, and a preview-first disaster recovery path.</dd>
+    </div>
+  </dl>
+
+  <h2 class="section-label"><span class="dot"></span>Stack</h2>
+  <div class="chips">
+    <span class="chip">FastAPI</span>
+    <span class="chip">SQLite</span>
+    <span class="chip">Leaflet</span>
+    <span class="chip">OpenStreetMap</span>
+    <span class="chip">Overpass</span>
+    <span class="chip">Docker</span>
+    <span class="chip">No build step</span>
+  </div>
+
+  <footer>
+    <span>Map data © OpenStreetMap contributors</span>
+    <span class="sep">·</span>
+    <a href="/">Back</a>
+  </footer>
+
+</div>
+
+</body>
+</html>
