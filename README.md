@@ -9,11 +9,16 @@ JavaScript at all, so it deploys as-is with nothing else to fetch.
 ## Files
 - `index.html` landing page, intro and project card grid
 - `roller.html` RollerMap project page, served at `/roller`
+- `minesweeper.html` playable Minesweeper, served at `/minesweeper`
 - `404.html` not-found page
 - `style.css` all styling, shared by every page
 
-Cloudflare Pages serves `roller.html` at the clean URL `/roller`. Adding a new
-project means adding a page and a card in `index.html`.
+Cloudflare Pages serves `roller.html` at the clean URL `/roller`, same for
+`minesweeper.html` at `/minesweeper`. Adding a new project means adding a
+page and a card in `index.html`.
+
+`minesweeper.html` is the one page with actual JavaScript (the game itself);
+everything else on the site is still markup and CSS only.
 
 ## Hosting
 
