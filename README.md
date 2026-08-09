@@ -3,22 +3,31 @@
 Personal homepage. Monochrome, dark, minimal: a short intro and a grid of
 project cards, with each project on its own page.
 
-Everything is self-contained. No external fonts, images, or scripts, and no
-JavaScript at all, so it deploys as-is with nothing else to fetch.
+Everything is self-contained. No external fonts, images, or scripts, so it
+deploys as-is with nothing else to fetch.
 
 ## Files
 - `index.html` landing page, intro and project card grid
 - `roller.html` RollerMap project page, served at `/roller`
 - `minesweeper.html` playable Minesweeper, served at `/minesweeper`
+- `sudoku.html` playable Sudoku, served at `/sudoku`
+- `riichi/` Riichi mahjong trainer, served at `/riichi`
 - `404.html` not-found page
 - `style.css` all styling, shared by every page
+- `theme.js` site-wide theme picker, injected into every page
 
 Cloudflare Pages serves `roller.html` at the clean URL `/roller`, same for
-`minesweeper.html` at `/minesweeper`. Adding a new project means adding a
-page and a card in `index.html`.
+`minesweeper.html` at `/minesweeper` and `sudoku.html` at `/sudoku`. Adding a
+new project means adding a page, a card in `index.html`, and an entry in
+`sitemap.xml`.
 
-`minesweeper.html` is the one page with actual JavaScript (the game itself);
-everything else on the site is still markup and CSS only.
+The games carry their own JavaScript inline; the rest of the site is markup
+and CSS plus `theme.js`.
+
+`sudoku.html` generates each puzzle in the browser: fill a grid by randomised
+backtracking, then remove clues one at a time, keeping a removal only when the
+puzzle still has exactly one solution. That check is what makes the difficulty
+levels honest, and it runs in a few milliseconds.
 
 ## Hosting
 

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sudoku</title>
+<meta name="description" content="Sudoku. Three difficulties, every puzzle has one solution, pencil marks and keyboard entry.">
+<meta property="og:title" content="Sudoku">
+<meta property="og:description" content="Sudoku. Three difficulties, every puzzle has one solution, pencil marks and keyboard entry.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mtw4244.work/sudoku">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23111%22/><text x=%2250%22 y=%2270%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22700%22 font-size=%2262%22 fill=%22%23fff%22 text-anchor=%22middle%22>M</text></svg>">
+<link rel="stylesheet" href="style.css">
+<script src="theme.js" defer></script>
+<style>
+  :root { --rule: color-mix(in srgb, var(--fg) 55%, transparent); }
+
+  .sd-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+
+  .sd-select {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 14px;
+  }
+
+  .sd-hud {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--card);
+    padding: 14px 20px;
+    margin-bottom: 16px;
+    max-width: 486px;
+  }
+
+  .sd-stat { display: flex; flex-direction: column; align-items: center; min-width: 64px; }
+  .sd-stat .sd-lbl { color: var(--muted); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 650; }
+  .sd-stat .sd-val { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
+
+  .sd-face { font-size: 22px; background: none; border: 1px solid var(--line); border-radius: 999px; width: 42px; height: 42px; cursor: pointer; color: var(--fg); }
+  .sd-face:hover { border-color: var(--line-hover); }
+
+  #board {
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 2px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+    max-width: 486px;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  .cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    background: var(--card);
+    color: var(--muted);
+    font-size: clamp(1rem, 4.4vw, 1.45rem);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    border: 0;
+    padding: 0;
+    font-family: inherit;
+  }
+
+  /* 3x3 box separators, drawn inside the right/bottom edge of rows/columns 3 and 6.
+     Mixed off --fg so they stay visible in light themes as well as dark ones. */
+  .cell.bx { box-shadow: inset -2px 0 0 var(--rule); }
+  .cell.by { box-shadow: inset 0 -2px 0 var(--rule); }
+  .cell.bx.by { box-shadow: inset -2px 0 0 var(--rule), inset 0 -2px 0 var(--rule); }
+
+  .cell.given { color: var(--fg); font-weight: 700; background: var(--bg); }
+  .cell.peer { background: color-mix(in srgb, var(--fg) 7%, var(--card)); }
+  .cell.given.peer { background: color-mix(in srgb, var(--fg) 7%, var(--bg)); }
+  .cell.match { background: color-mix(in srgb, var(--fg) 15%, var(--card)); }
+  .cell.selected { background: color-mix(in srgb, var(--fg) 24%, var(--card)); }
+  .cell.wrong { color: var(--fg); text-decoration: underline wavy; text-underline-offset: 4px; }
+  .cell:focus-visible { outline: 2px solid var(--fg); outline-offset: -2px; }
+
+  .notes {
+    position: absolute;
+    inset: 2px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    font-size: 9px;
+    line-height: 1;
+    font-weight: 600;
+    color: var(--muted);
+    opacity: 0.75;
+  }
+  .notes span { display: grid; place-items: center; }
+
+  .sd-pad { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 6px; max-width: 486px; margin-top: 14px; }
+
+  .sd-num {
+    font: inherit;
+    font-size: 16px;
+    font-weight: 650;
+    color: var(--fg);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 0;
+    cursor: pointer;
+  }
+  .sd-num:hover { border-color: var(--line-hover); }
+  .sd-num.done { color: var(--muted); opacity: 0.45; }
+
+  .sd-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; max-width: 486px; }
+
+  .sd-tbtn {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+  .sd-tbtn:hover { border-color: var(--line-hover); }
+  .sd-tbtn.on { border-color: var(--muted); color: var(--muted); }
+  .sd-hint { font-size: 12px; color: var(--muted); }
+
+  .sd-msg { margin-top: 16px; color: var(--muted); font-size: 14.5px; min-height: 1.4em; max-width: 486px; }
+  .sd-msg.win, .sd-msg.lose { color: var(--fg); font-weight: 650; }
+
+  @media (max-width: 520px) {
+    .sd-hud { padding: 12px 16px; }
+    .sd-pad { gap: 4px; }
+    .sd-num { font-size: 15px; padding: 9px 0; border-radius: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="topbar">
+    <a class="back" href="/"><span class="chev-l">‹</span> matthew</a>
+    <span class="tag-muted">no build step</span>
+  </header>
+
+  <h1 class="page-title">Sudoku</h1>
+  <p class="page-lede">Three difficulties. Every puzzle is generated fresh and has exactly one solution. Type a number, or use the pad. N toggles pencil marks.</p>
+
+  <div class="sd-controls">
+    <select class="sd-select" id="difficulty">
+      <option value="easy">Easy · 42 clues</option>
+      <option value="medium" selected>Medium · 34 clues</option>
+      <option value="hard">Hard · 26 clues</option>
+    </select>
+    <button class="btn" id="new-game" style="padding:8px 16px;">New game</button>
+  </div>
+
+  <div class="sd-hud">
+    <div class="sd-stat"><span class="sd-lbl">Left</span><span class="sd-val" id="left">0</span></div>
+    <button class="sd-face" id="face" aria-label="New game">﹀</button>
+    <div class="sd-stat"><span class="sd-lbl">Time</span><span class="sd-val" id="timer">0</span></div>
+  </div>
+
+  <div id="board"></div>
+
+  <div class="sd-pad" id="pad"></div>
+
+  <div class="sd-tools">
+    <button class="sd-tbtn" id="notes-btn" type="button">Pencil marks: off</button>
+    <button class="sd-tbtn" id="erase-btn" type="button">Erase</button>
+    <button class="sd-tbtn" id="undo-btn" type="button">Undo</button>
+    <span class="sd-hint">Arrows move · 1-9 enter · 0 or Backspace erases</span>
+  </div>
+
+  <div class="sd-msg" id="msg"></div>
+
+  <footer>
+    <span>Click a cell, then type · N for pencil marks · Wrong entries are underlined</span>
+    <span class="sep">·</span>
+    <a href="/">Back</a>
+  </footer>
+
+</div>
+
+<script>
+const DIFFICULTIES = {
+  easy:   { clues: 42 },
+  medium: { clues: 34 },
+  hard:   { clues: 26 },
+};
+
+const boardEl = document.getElementById('board');
+const padEl = document.getElementById('pad');
+const leftEl = document.getElementById('left');
+const timerEl = document.getElementById('timer');
+const faceEl = document.getElementById('face');
+const msgEl = document.getElementById('msg');
+const difficultySel = document.getElementById('difficulty');
+const newGameBtn = document.getElementById('new-game');
+const notesBtn = document.getElementById('notes-btn');
+const eraseBtn = document.getElementById('erase-btn');
+const undoBtn = document.getElementById('undo-btn');
+
+let puzzle = new Int8Array(81);   // the givens, 0 where empty
+let solution = new Int8Array(81); // the unique answer
+let entries = new Int8Array(81);  // what the player has typed, 0 where empty
+let notes = [];                   // per-cell Set of pencil marks
+let history = [];                 // undo stack of {i, value, notes}
+let selected = null;
+let notesMode = false;
+let gameOver = false;
+let timerId = null;
+let seconds = 0;
+let started = false;
+
+const rowOf = (i) => (i / 9) | 0;
+const colOf = (i) => i % 9;
+const boxOf = (i) => ((rowOf(i) / 3) | 0) * 3 + ((colOf(i) / 3) | 0);
+
+/* ---------- solver: bitmask candidates, minimum-remaining-values first ---------- */
+
+function popcount(x) {
+  let n = 0;
+  while (x) { x &= x - 1; n++; }
+  return n;
+}
+
+function makeMasks(g) {
+  const rows = new Int32Array(9), cols = new Int32Array(9), boxes = new Int32Array(9);
+  for (let i = 0; i < 81; i++) {
+    const v = g[i];
+    if (!v) continue;
+    const m = 1 << v;
+    rows[rowOf(i)] |= m; cols[colOf(i)] |= m; boxes[boxOf(i)] |= m;
+  }
+  return { rows, cols, boxes };
+}
+
+// Counts solutions up to `limit`. Used both to solve (limit 1) and to prove
+// uniqueness while digging holes (limit 2).
+function countSolutions(g, limit, out) {
+  const board = Int8Array.from(g);
+  const { rows, cols, boxes } = makeMasks(board);
+  let count = 0;
+
+  function rec() {
+    let best = -1, bestMask = 0, bestCount = 10;
+    for (let i = 0; i < 81; i++) {
+      if (board[i]) continue;
+      const avail = ~(rows[rowOf(i)] | cols[colOf(i)] | boxes[boxOf(i)]) & 0x3FE;
+      const n = popcount(avail);
+      if (n === 0) return;
+      if (n < bestCount) { bestCount = n; best = i; bestMask = avail; if (n === 1) break; }
+    }
+    if (best === -1) {
+      count++;
+      if (out && count === 1) out.set(board);
+      return;
+    }
+    const r = rowOf(best), c = colOf(best), b = boxOf(best);
+    for (let v = 1; v <= 9; v++) {
+      const m = 1 << v;
+      if (!(bestMask & m)) continue;
+      board[best] = v; rows[r] |= m; cols[c] |= m; boxes[b] |= m;
+      rec();
+      board[best] = 0; rows[r] &= ~m; cols[c] &= ~m; boxes[b] &= ~m;
+      if (count >= limit) return;
+    }
+  }
+
+  rec();
+  return count;
+}
+
+function shuffled(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function fullGrid() {
+  const board = new Int8Array(81);
+  const { rows, cols, boxes } = makeMasks(board);
+
+  function rec(i) {
+    if (i === 81) return true;
+    const r = rowOf(i), c = colOf(i), b = boxOf(i);
+    const avail = ~(rows[r] | cols[c] | boxes[b]) & 0x3FE;
+    for (const v of shuffled([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
+      const m = 1 << v;
+      if (!(avail & m)) continue;
+      board[i] = v; rows[r] |= m; cols[c] |= m; boxes[b] |= m;
+      if (rec(i + 1)) return true;
+      board[i] = 0; rows[r] &= ~m; cols[c] &= ~m; boxes[b] &= ~m;
+    }
+    return false;
+  }
+
+  rec(0);
+  return board;
+}
+
+// Removes clues in random order, keeping only removals that leave the puzzle
+// with a single solution. Stops at the target clue count, or when nothing else
+// can come out.
+function generate(targetClues) {
+  const full = fullGrid();
+  const p = Int8Array.from(full);
+  let clues = 81;
+  for (const i of shuffled([...Array(81).keys()])) {
+    if (clues <= targetClues) break;
+    const saved = p[i];
+    p[i] = 0;
+    if (countSolutions(p, 2) === 1) clues--;
+    else p[i] = saved;
+  }
+  return { puzzle: p, solution: full };
+}
+
+/* ---------- rendering ---------- */
+
+function cellAt(i) { return boardEl.children[i]; }
+
+function valueAt(i) { return puzzle[i] || entries[i]; }
+
+function isPeer(a, b) {
+  return a !== b && (rowOf(a) === rowOf(b) || colOf(a) === colOf(b) || boxOf(a) === boxOf(b));
+}
+
+function buildBoard() {
+  boardEl.innerHTML = '';
+  for (let i = 0; i < 81; i++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cell';
+    btn.dataset.i = i;
+    if (colOf(i) === 2 || colOf(i) === 5) btn.classList.add('bx');
+    if (rowOf(i) === 2 || rowOf(i) === 5) btn.classList.add('by');
+    boardEl.appendChild(btn);
+  }
+}
+
+function render() {
+  const selValue = selected === null ? 0 : valueAt(selected);
+  let remaining = 0;
+
+  for (let i = 0; i < 81; i++) {
+    const el = cellAt(i);
+    const given = puzzle[i] !== 0;
+    const v = valueAt(i);
+    if (!v) remaining++;
+
+    el.classList.toggle('given', given);
+    el.classList.toggle('selected', selected === i);
+    el.classList.toggle('peer', selected !== null && isPeer(i, selected));
+    el.classList.toggle('match', selValue !== 0 && v === selValue && i !== selected);
+    el.classList.toggle('wrong', !given && v !== 0 && v !== solution[i]);
+
+    if (v) {
+      el.textContent = v;
+    } else if (notes[i].size) {
+      el.textContent = '';
+      const box = document.createElement('span');
+      box.className = 'notes';
+      for (let n = 1; n <= 9; n++) {
+        const s = document.createElement('span');
+        s.textContent = notes[i].has(n) ? n : '';
+        box.appendChild(s);
+      }
+      el.appendChild(box);
+    } else {
+      el.textContent = '';
+    }
+  }
+
+  leftEl.textContent = remaining;
+  renderPad();
+}
+
+function renderPad() {
+  for (let n = 1; n <= 9; n++) {
+    let placed = 0;
+    for (let i = 0; i < 81; i++) if (valueAt(i) === n && solution[i] === n) placed++;
+    padEl.children[n - 1].classList.toggle('done', placed === 9);
+  }
+}
+
+function buildPad() {
+  padEl.innerHTML = '';
+  for (let n = 1; n <= 9; n++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sd-num';
+    btn.textContent = n;
+    btn.addEventListener('click', () => enter(n));
+    padEl.appendChild(btn);
+  }
+}
+
+/* ---------- timer ---------- */
+
+function startTimer() {
+  stopTimer();
+  seconds = 0;
+  timerEl.textContent = '0';
+  timerId = setInterval(() => {
+    seconds++;
+    timerEl.textContent = seconds;
+  }, 1000);
+}
+function stopTimer() { if (timerId) clearInterval(timerId); timerId = null; }
+
+/* ---------- play ---------- */
+
+function pushHistory(i) {
+  history.push({ i, value: entries[i], notes: new Set(notes[i]) });
+  if (history.length > 300) history.shift();
+}
+
+function enter(n) {
+  if (gameOver || selected === null) return;
+  const i = selected;
+  if (puzzle[i] !== 0) return;
+  if (!started) { started = true; startTimer(); }
+
+  pushHistory(i);
+
+  if (notesMode) {
+    if (entries[i]) entries[i] = 0;
+    if (notes[i].has(n)) notes[i].delete(n);
+    else notes[i].add(n);
+  } else if (entries[i] === n) {
+    entries[i] = 0;
+  } else {
+    entries[i] = n;
+    notes[i].clear();
+    // A confirmed number clears that pencil mark from its row, column and box.
+    if (n === solution[i]) {
+      for (let j = 0; j < 81; j++) if (isPeer(j, i)) notes[j].delete(n);
+    }
+  }
+
+  render();
+  checkWin();
+}
+
+function erase() {
+  if (gameOver || selected === null) return;
+  const i = selected;
+  if (puzzle[i] !== 0) return;
+  if (!entries[i] && !notes[i].size) return;
+  pushHistory(i);
+  entries[i] = 0;
+  notes[i].clear();
+  render();
+}
+
+function undo() {
+  if (gameOver || !history.length) return;
+  const step = history.pop();
+  entries[step.i] = step.value;
+  notes[step.i] = step.notes;
+  selected = step.i;
+  render();
+}
+
+function checkWin() {
+  for (let i = 0; i < 81; i++) if (valueAt(i) !== solution[i]) return;
+  gameOver = true;
+  stopTimer();
+  faceEl.textContent = '☺';
+  msgEl.textContent = `Solved in ${seconds}s.`;
+  msgEl.className = 'sd-msg win';
+  selected = null;
+  render();
+}
+
+function move(dr, dc) {
+  if (selected === null) { selected = 0; render(); return; }
+  const r = Math.min(8, Math.max(0, rowOf(selected) + dr));
+  const c = Math.min(8, Math.max(0, colOf(selected) + dc));
+  selected = r * 9 + c;
+  render();
+}
+
+boardEl.addEventListener('click', (e) => {
+  const target = e.target.closest('.cell');
+  if (!target || gameOver) return;
+  selected = Number(target.dataset.i);
+  render();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const key = e.key;
+
+  if (key === 'n' || key === 'N') { e.preventDefault(); toggleNotes(); return; }
+  if (key === 'u' || key === 'U') { e.preventDefault(); undo(); return; }
+  if (key === 'ArrowUp' || key === 'w') { e.preventDefault(); move(-1, 0); return; }
+  if (key === 'ArrowDown' || key === 's') { e.preventDefault(); move(1, 0); return; }
+  if (key === 'ArrowLeft' || key === 'a') { e.preventDefault(); move(0, -1); return; }
+  if (key === 'ArrowRight' || key === 'd') { e.preventDefault(); move(0, 1); return; }
+  if (key === 'Backspace' || key === 'Delete' || key === '0') { e.preventDefault(); erase(); return; }
+  if (key >= '1' && key <= '9') { e.preventDefault(); enter(Number(key)); }
+});
+
+function toggleNotes() {
+  notesMode = !notesMode;
+  notesBtn.classList.toggle('on', notesMode);
+  notesBtn.textContent = `Pencil marks: ${notesMode ? 'on' : 'off'}`;
+}
+
+notesBtn.addEventListener('click', toggleNotes);
+eraseBtn.addEventListener('click', erase);
+undoBtn.addEventListener('click', undo);
+
+function newGame() {
+  msgEl.textContent = 'Generating…';
+  msgEl.className = 'sd-msg';
+  // Let the "Generating…" paint land before the generator blocks the thread.
+  setTimeout(() => {
+    const target = DIFFICULTIES[difficultySel.value].clues;
+    const made = generate(target);
+    puzzle = made.puzzle;
+    solution = made.solution;
+    entries = new Int8Array(81);
+    notes = Array.from({ length: 81 }, () => new Set());
+    history = [];
+    selected = null;
+    gameOver = false;
+    started = false;
+    stopTimer();
+    seconds = 0;
+    timerEl.textContent = '0';
+    faceEl.textContent = '﹀';
+    msgEl.textContent = '';
+    render();
+  }, 20);
+}
+
+newGameBtn.addEventListener('click', newGame);
+faceEl.addEventListener('click', newGame);
+difficultySel.addEventListener('change', newGame);
+
+buildBoard();
+buildPad();
+newGame();
+</script>
+</body>
+</html>
