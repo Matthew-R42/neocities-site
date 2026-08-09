@@ -38,7 +38,7 @@ const SITE_THEMES = [
     btn.type = 'button';
     btn.className = 'site-theme-btn';
     btn.setAttribute('aria-label', 'Change theme');
-    btn.textContent = '🎨';
+    btn.textContent = '🎨 Theme';
 
     const panel = document.createElement('div');
     panel.className = 'site-theme-panel hidden';
