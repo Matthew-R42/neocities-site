@@ -89,8 +89,72 @@
 
   .stage-role { font-size: 14px; color: var(--muted); margin-top: 12px; }
 
+  /* The hidden region is a fixed-size box. A blur still leaked the word:
+     you could see the colour change and the width grow for IMPOSTER. So while
+     concealed the contents come out of the flow entirely and a missing-texture
+     tile covers the box, which is the same size on every card. */
+  .stage-hide {
+    position: relative;
+    width: 100%;
+    min-height: 104px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
   .concealed .stage-word,
-  .concealed .stage-role { filter: blur(18px); user-select: none; }
+  .concealed .stage-role {
+    visibility: hidden;
+    position: absolute;
+    user-select: none;
+  }
+
+  .glitch {
+    display: none;
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: #000;
+    background-image: conic-gradient(#f0f 0 25%, #000 0 50%, #f0f 0 75%, #000 0);
+    background-size: 34px 34px;
+    animation: glitch-drift 1.6s steps(4) infinite;
+  }
+  .concealed .glitch { display: block; }
+
+  .glitch::after {
+    content: "ERROR";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: clamp(20px, 6vw, 30px);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: #fff;
+    text-shadow: 2px 0 #f0f, -2px 0 #0ff;
+    animation: glitch-shift 1.1s steps(3) infinite;
+  }
+
+  @keyframes glitch-drift {
+    0%   { background-position: 0 0; }
+    25%  { background-position: 6px -4px; }
+    50%  { background-position: -5px 3px; }
+    75%  { background-position: 3px 6px; }
+    100% { background-position: 0 0; }
+  }
+  @keyframes glitch-shift {
+    0%   { transform: translateX(0); }
+    33%  { transform: translateX(-2px); }
+    66%  { transform: translateX(2px); }
+    100% { transform: translateX(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glitch, .glitch::after { animation: none; }
+  }
 
   .stage-tap { font-size: 14px; color: var(--muted); }
 
@@ -174,8 +238,11 @@
 
     <div class="card-stage concealed" id="stage">
       <div class="stage-category" id="stageCategory"></div>
-      <div class="stage-word" id="stageWord"></div>
-      <div class="stage-role" id="stageRole"></div>
+      <div class="stage-hide">
+        <div class="stage-word" id="stageWord"></div>
+        <div class="stage-role" id="stageRole"></div>
+        <div class="glitch" aria-hidden="true"></div>
+      </div>
     </div>
 
     <div class="btn-row">
