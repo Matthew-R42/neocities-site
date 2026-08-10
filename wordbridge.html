@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wordbridge</title>
+<meta name="description" content="Wordbridge. Connect two unrelated words with a chain of words that bridge their meaning. One pair a day, plus practice mode.">
+<meta property="og:title" content="Wordbridge">
+<meta property="og:description" content="Wordbridge. Connect two unrelated words with a chain of words that bridge their meaning. One pair a day, plus practice mode.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mtw4244.work/wordbridge">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23111%22/><text x=%2250%22 y=%2270%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22700%22 font-size=%2262%22 fill=%22%23fff%22 text-anchor=%22middle%22>M</text></svg>">
+<link rel="stylesheet" href="style.css">
+<script src="theme.js" defer></script>
+<style>
+  .wb-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+
+  .wb-select {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 14px;
+  }
+
+  .wb-hud {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--card);
+    padding: 14px 20px;
+    margin-bottom: 16px;
+    max-width: 486px;
+  }
+
+  .wb-stat { display: flex; flex-direction: column; align-items: center; min-width: 64px; }
+  .wb-stat .wb-lbl { color: var(--muted); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 650; }
+  .wb-stat .wb-val { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
+
+  .wb-chain {
+    max-width: 486px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--card);
+    padding: 16px;
+    min-height: 60px;
+  }
+
+  .wb-pill {
+    font-weight: 650;
+    font-size: 14px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--fg);
+  }
+  .wb-pill.endpoint { border-color: var(--fg); }
+  .wb-pill.link { display: flex; align-items: center; gap: 6px; }
+  .wb-pill.link button {
+    font: inherit;
+    font-size: 12px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+  .wb-pill.link button:hover { color: var(--fg); }
+  .wb-arrow { color: var(--muted); }
+
+  .wb-input-row { max-width: 486px; display: flex; gap: 8px; margin-top: 12px; }
+  .wb-input {
+    flex: 1;
+    font: inherit;
+    font-size: 15px;
+    color: var(--fg);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 10px 16px;
+  }
+  .wb-input:focus { outline: none; border-color: var(--fg); }
+
+  .wb-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; max-width: 486px; }
+
+  .wb-tbtn {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+  .wb-tbtn:hover { border-color: var(--line-hover); }
+  .wb-tbtn:disabled { opacity: 0.4; cursor: default; }
+
+  .wb-msg { margin-top: 16px; color: var(--muted); font-size: 14.5px; min-height: 1.4em; max-width: 486px; }
+  .wb-msg.win { color: var(--fg); font-weight: 650; }
+
+  .wb-credit { margin-top: 28px; font-size: 13px; color: var(--muted); max-width: 486px; }
+  .wb-credit a { color: var(--muted); }
+  .wb-credit a:hover { color: var(--fg); }
+
+  @media (max-width: 520px) {
+    .wb-hud { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="topbar">
+    <a class="back" href="/"><span class="chev-l">‹</span> matthew</a>
+    <span class="tag-muted">no build step</span>
+  </header>
+
+  <h1 class="page-title">Wordbridge</h1>
+  <p class="page-lede">Two words, one meaning-gap. Add words one at a time until each step feels like a small, obvious hop from the last. Shorter chains score better. One pair a day, unlimited practice underneath.</p>
+
+  <div class="wb-controls">
+    <select class="wb-select" id="mode">
+      <option value="daily" selected>Daily · pair #<span id="day-num-inline"></span></option>
+      <option value="practice">Practice · unlimited</option>
+    </select>
+    <button class="btn" id="new-pair" style="padding:8px 16px; display:none;">New pair</button>
+  </div>
+
+  <div class="wb-hud">
+    <div class="wb-stat"><span class="wb-lbl">Streak</span><span class="wb-val" id="streak">0</span></div>
+    <div class="wb-stat"><span class="wb-lbl">Best</span><span class="wb-val" id="best">—</span></div>
+    <div class="wb-stat"><span class="wb-lbl">Played</span><span class="wb-val" id="played">0</span></div>
+  </div>
+
+  <div class="wb-chain" id="chain"></div>
+
+  <div class="wb-input-row">
+    <input class="wb-input" id="word-input" type="text" placeholder="Next word…" autocomplete="off" maxlength="24">
+    <button class="btn" id="add-word" style="padding:10px 18px;">Add</button>
+  </div>
+
+  <div class="wb-tools">
+    <button class="wb-tbtn" id="undo-btn" type="button">Undo last</button>
+    <button class="wb-tbtn" id="finish-btn" type="button">Finish chain</button>
+    <button class="wb-tbtn" id="share-btn" type="button">Copy result</button>
+  </div>
+
+  <div class="wb-msg" id="msg"></div>
+
+  <p class="wb-credit">A fan-made game in the spirit of <a href="https://linxicon.com/" target="_blank" rel="noopener">Linxicon</a>, rebuilt from scratch with permission from its creator. Not affiliated with the original site.</p>
+
+  <footer>
+    <span>Type a word and press Enter · Finish once your chain reaches the target</span>
+    <span class="sep">·</span>
+    <a href="/">Back</a>
+  </footer>
+
+</div>
+
+<script>
+const STORAGE_PREFIX = 'wordbridge:';
+const EPOCH = new Date(2026, 7, 11); // pair #1
+
+// Curated pairs for the start/target endpoints. Deliberately everyday nouns
+// and concepts with an obvious semantic gap to bridge.
+const WORD_BANK = [
+  'ocean','ladder','thunder','pillow','compass','glacier','harvest','mirror','ember','anchor',
+  'kite','tunnel','feather','engine','orchard','lantern','current','marble','desert','violin',
+  'bridge','shadow','clock','forest','island','rocket','candle','river','castle','needle',
+  'volcano','whistle','garden','anchor','beacon','tide','circuit','meadow','stone','spark',
+  'nest','harbor','prairie','glass','frost','ribbon','canyon','signal','drum','vine',
+  'satellite','coral','ash','lattice','wharf','summit','echo','quarry','moss','tide',
+  'origami','avalanche','cascade','lighthouse','pendulum','plateau','reef','silo','thicket','wren',
+];
+
+function pickPair(rng) {
+  const bank = WORD_BANK;
+  const i = Math.floor(rng() * bank.length);
+  let j = Math.floor(rng() * bank.length);
+  while (j === i) j = Math.floor(rng() * bank.length);
+  return [bank[i], bank[j]];
+}
+
+const modeSel = document.getElementById('mode');
+const newPairBtn = document.getElementById('new-pair');
+const streakEl = document.getElementById('streak');
+const bestEl = document.getElementById('best');
+const playedEl = document.getElementById('played');
+const dayNumInline = document.getElementById('day-num-inline');
+const chainEl = document.getElementById('chain');
+const inputEl = document.getElementById('word-input');
+const addBtn = document.getElementById('add-word');
+const undoBtn = document.getElementById('undo-btn');
+const finishBtn = document.getElementById('finish-btn');
+const shareBtn = document.getElementById('share-btn');
+const msgEl = document.getElementById('msg');
+const dayNumInline2 = dayNumInline;
+
+let mode = 'daily';
+let start = '', target = '';
+let bridge = []; // intermediate words the player has added
+let finished = false;
+let locked = false;
+let lastLength = null;
+
+/* ---------- seeded rng ---------- */
+
+function hashSeed(str) {
+  let h = 1779033703 ^ str.length;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
+function mulberry32(seed) {
+  let a = seed;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function dayNumber() {
+  const now = new Date();
+  const a = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.max(1, Math.round((a - EPOCH) / 86400000) + 1);
+}
+
+/* ---------- rendering ---------- */
+
+function render() {
+  chainEl.innerHTML = '';
+  const words = [start, ...bridge, ...(finished ? [target] : [])];
+  words.forEach((w, i) => {
+    if (i > 0) {
+      const arrow = document.createElement('span');
+      arrow.className = 'wb-arrow';
+      arrow.textContent = '→';
+      chainEl.appendChild(arrow);
+    }
+    const pill = document.createElement('span');
+    const isEndpoint = i === 0 || (finished && i === words.length - 1);
+    pill.className = 'wb-pill' + (isEndpoint ? ' endpoint' : '');
+    pill.textContent = w;
+    chainEl.appendChild(pill);
+  });
+  if (!finished) {
+    const arrow = document.createElement('span');
+    arrow.className = 'wb-arrow';
+    arrow.textContent = '→ … →';
+    chainEl.appendChild(arrow);
+    const pill = document.createElement('span');
+    pill.className = 'wb-pill endpoint';
+    pill.textContent = target;
+    chainEl.appendChild(pill);
+  }
+
+  undoBtn.disabled = bridge.length === 0 || finished;
+  finishBtn.disabled = bridge.length === 0 || finished || locked;
+  inputEl.disabled = finished || locked;
+  addBtn.disabled = finished || locked;
+}
+
+/* ---------- stats ---------- */
+
+function loadStats() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_PREFIX + 'stats')) || { streak: 0, best: null, played: 0, lastDay: null };
+  } catch (e) {
+    return { streak: 0, best: null, played: 0, lastDay: null };
+  }
+}
+
+function saveStats(stats) {
+  localStorage.setItem(STORAGE_PREFIX + 'stats', JSON.stringify(stats));
+}
+
+function refreshHud() {
+  const stats = loadStats();
+  streakEl.textContent = stats.streak;
+  bestEl.textContent = stats.best === null ? '—' : stats.best;
+  playedEl.textContent = stats.played;
+}
+
+/* ---------- play ---------- */
+
+function addWord() {
+  if (finished || locked) return;
+  const raw = inputEl.value.trim().toLowerCase();
+  if (!raw || !/^[a-z]+(?:[ '-][a-z]+)*$/.test(raw)) {
+    msgEl.textContent = 'Words only, letters and spaces.';
+    msgEl.className = 'wb-msg';
+    return;
+  }
+  const last = bridge.length ? bridge[bridge.length - 1] : start;
+  if (raw === last) {
+    msgEl.textContent = "That's the same word as the last step.";
+    msgEl.className = 'wb-msg';
+    return;
+  }
+  bridge.push(raw);
+  inputEl.value = '';
+  msgEl.textContent = '';
+  msgEl.className = 'wb-msg';
+  render();
+}
+
+function undo() {
+  if (finished || locked || !bridge.length) return;
+  bridge.pop();
+  render();
+}
+
+function finish() {
+  if (finished || locked || !bridge.length) return;
+  finished = true;
+  lastLength = bridge.length;
+  render();
+
+  if (mode !== 'daily') {
+    msgEl.textContent = `Bridged in ${lastLength} word${lastLength === 1 ? '' : 's'}. Nice work.`;
+    msgEl.className = 'wb-msg win';
+    return;
+  }
+
+  const stats = loadStats();
+  const today = todayStr();
+  const alreadyToday = stats.lastDay === today;
+  if (!alreadyToday) {
+    const wasYesterday = stats.lastDay && (new Date(today) - new Date(stats.lastDay)) === 86400000;
+    stats.streak = (wasYesterday ? stats.streak : 0) + 1;
+    stats.best = stats.best === null ? lastLength : Math.min(stats.best, lastLength);
+    stats.played += 1;
+    stats.lastDay = today;
+    saveStats(stats);
+  }
+  localStorage.setItem(STORAGE_PREFIX + 'done:' + today, JSON.stringify({ bridge, length: lastLength }));
+  locked = true;
+  refreshHud();
+  msgEl.textContent = `Bridged ${start} to ${target} in ${lastLength} word${lastLength === 1 ? '' : 's'}. Come back tomorrow for the next pair.`;
+  msgEl.className = 'wb-msg win';
+}
+
+function shareResult() {
+  if (lastLength === null) return;
+  const text = mode === 'daily'
+    ? `Wordbridge #${dayNumber()} — ${start} → … → ${target} (${lastLength} step${lastLength === 1 ? '' : 's'})`
+    : `Wordbridge (practice) — ${start} → … → ${target} (${lastLength} step${lastLength === 1 ? '' : 's'})`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      msgEl.textContent = 'Result copied.';
+      msgEl.className = msgEl.className.includes('win') ? 'wb-msg win' : 'wb-msg';
+    });
+  }
+}
+
+/* ---------- setup ---------- */
+
+function newGame() {
+  bridge = [];
+  finished = false;
+  lastLength = null;
+  msgEl.textContent = '';
+  msgEl.className = 'wb-msg';
+  inputEl.value = '';
+
+  if (mode === 'daily') {
+    newPairBtn.style.display = 'none';
+    const rng = mulberry32(hashSeed('wordbridge-' + todayStr()));
+    [start, target] = pickPair(rng);
+    const saved = localStorage.getItem(STORAGE_PREFIX + 'done:' + todayStr());
+    if (saved) {
+      const r = JSON.parse(saved);
+      locked = true;
+      finished = true;
+      bridge = r.bridge;
+      lastLength = r.length;
+      msgEl.textContent = `Already played today: bridged in ${r.length} word${r.length === 1 ? '' : 's'}. Come back tomorrow.`;
+      msgEl.className = 'wb-msg win';
+    } else {
+      locked = false;
+    }
+  } else {
+    newPairBtn.style.display = '';
+    locked = false;
+    const rng = mulberry32((Math.random() * 4294967296) >>> 0);
+    [start, target] = pickPair(rng);
+  }
+
+  render();
+  refreshHud();
+}
+
+addBtn.addEventListener('click', addWord);
+inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addWord(); } });
+undoBtn.addEventListener('click', undo);
+finishBtn.addEventListener('click', finish);
+shareBtn.addEventListener('click', shareResult);
+modeSel.addEventListener('change', () => { mode = modeSel.value; newGame(); });
+newPairBtn.addEventListener('click', newGame);
+
+dayNumInline.textContent = dayNumber();
+newGame();
+</script>
+</body>
+</html>
