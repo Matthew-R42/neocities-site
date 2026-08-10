@@ -65,9 +65,24 @@ const SITE_THEMES = [
       });
     }
 
-    btn.addEventListener('click', () => panel.classList.toggle('hidden'));
+    // On phones the panel is in normal flow at the very bottom of the page, so
+    // opening it puts it below the fold and the tap looks like it did nothing.
+    // Scroll it into view whenever it opens.
+    function openPanel() {
+      panel.classList.remove('hidden');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (panel.classList.contains('hidden')) openPanel();
+      else panel.classList.add('hidden');
+    });
+
     document.addEventListener('click', (e) => {
-      if (!panel.contains(e.target) && e.target !== btn) panel.classList.add('hidden');
+      if (!panel.contains(e.target) && !btn.contains(e.target)) {
+        panel.classList.add('hidden');
+      }
     });
 
     document.body.appendChild(btn);

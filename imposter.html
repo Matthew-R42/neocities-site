@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Imposter - mtw4244.work</title>
+<meta name="description" content="Imposter, a pass-the-phone party word game. Everyone gets the same secret word except one player, who only knows the category.">
+<link rel="stylesheet" href="style.css">
+<style>
+  .game-wrap { max-width: 620px; margin: 0 auto; padding: 28px 18px 40px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .field { margin: 22px 0; }
+  .field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .count-row { display: flex; align-items: center; gap: 12px; }
+  .count-row input {
+    width: 84px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 18px;
+    text-align: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--fg);
+    border-radius: 8px;
+  }
+  .count-note { font-size: 13px; color: var(--muted); }
+
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+  .cat {
+    padding: 12px 10px;
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    color: var(--fg);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .cat:hover { border-color: var(--line-hover); }
+  .cat.active { border-color: var(--muted); color: var(--muted); }
+
+  .card-stage {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius, 10px);
+    padding: 40px 22px;
+    margin: 20px 0;
+    min-height: 210px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .stage-category {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+
+  .stage-word {
+    font-size: clamp(28px, 8vw, 44px);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--fg);
+    word-break: break-word;
+  }
+  .stage-word.imposter { color: var(--muted); letter-spacing: 0.04em; }
+
+  .stage-role { font-size: 14px; color: var(--muted); margin-top: 12px; }
+
+  .concealed .stage-word,
+  .concealed .stage-role { filter: blur(18px); user-select: none; }
+
+  .stage-tap { font-size: 14px; color: var(--muted); }
+
+  .who { font-size: 15px; color: var(--muted); margin-bottom: 4px; }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+
+  .game-wrap .gbtn {
+    padding: 11px 18px;
+    font: inherit;
+    font-size: 15px;
+    color: var(--fg);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .game-wrap .gbtn:hover { border-color: var(--line-hover); }
+  .game-wrap .gbtn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .game-wrap .gbtn.primary:hover { opacity: 0.9; }
+
+  .note { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 18px 0 0; }
+
+  .rules {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--muted);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 22px 0;
+  }
+  .rules h2 { font-size: 15px; margin: 0 0 8px; color: var(--fg); }
+  .rules ol { margin: 0; padding-left: 20px; }
+  .rules li { margin: 6px 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+
+  .back { display: inline-block; margin-top: 26px; font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="game-wrap">
+
+  <h1>Imposter</h1>
+
+  <!-- ---------- setup ---------- -->
+  <section class="screen active" id="setupScreen">
+
+    <div class="rules">
+      <h2>How to play</h2>
+      <ol>
+        <li>Everyone gets the same secret word, except one player.</li>
+        <li>That player sees only the word IMPOSTER and the category.</li>
+        <li>Go round the circle. Each player says one clue about the word.</li>
+        <li>The imposter has to bluff a clue that fits the category.</li>
+        <li>Vote on who the imposter is. Civilians win if they get it right.</li>
+        <li>The imposter wins by surviving, or by guessing the secret word.</li>
+      </ol>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="playerCount">Players</label>
+      <div class="count-row">
+        <input type="number" id="playerCount" min="3" max="20" value="5" inputmode="numeric">
+        <span class="count-note">3 to 20</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Category</span>
+      <div class="cat-grid" id="catGrid"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="gbtn primary" type="button" id="startBtn">Start game</button>
+    </div>
+  </section>
+
+  <!-- ---------- play ---------- -->
+  <section class="screen" id="playScreen">
+    <div class="who" id="who">Player 1</div>
+
+    <div class="card-stage concealed" id="stage">
+      <div class="stage-category" id="stageCategory"></div>
+      <div class="stage-word" id="stageWord"></div>
+      <div class="stage-role" id="stageRole"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="gbtn" type="button" id="revealBtn">Show word</button>
+      <button class="gbtn primary" type="button" id="nextBtn">Next player</button>
+    </div>
+    <div class="btn-row">
+      <button class="gbtn" type="button" id="newBtn">New game</button>
+    </div>
+
+    <p class="note" id="playNote">
+      Pass the phone around. Tap Show word, look, then tap Next player before
+      you hand it on. The word hides itself every time.
+    </p>
+  </section>
+
+  <!-- ---------- everyone has seen it ---------- -->
+  <section class="screen" id="doneScreen">
+    <div class="card-stage">
+      <div class="stage-word">Ready</div>
+      <div class="stage-role" id="doneRole"></div>
+    </div>
+    <p class="note">
+      Everyone has seen their card. Start with the player to the left of whoever
+      dealt, give one clue each, then vote.
+    </p>
+    <div class="btn-row">
+      <button class="gbtn" type="button" id="reviewBtn">Show cards again</button>
+      <button class="gbtn primary" type="button" id="againBtn">New game</button>
+    </div>
+  </section>
+
+  <a class="back" href="/">back to mtw4244.work</a>
+</div>
+
+<script src="theme.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const CATEGORIES = [
+    { id: 'animals', name: 'Animals', words: [
+      'elephant', 'penguin', 'octopus', 'kangaroo', 'crocodile', 'giraffe',
+      'hedgehog', 'dolphin', 'koala', 'flamingo', 'wombat', 'sloth', 'raccoon',
+      'jellyfish', 'peacock', 'tortoise', 'platypus', 'walrus', 'chameleon',
+      'meerkat', 'porcupine', 'seahorse', 'magpie', 'goldfish', 'camel',
+    ] },
+    { id: 'food', name: 'Food and drink', words: [
+      'pizza', 'sushi', 'pancakes', 'lasagne', 'espresso', 'watermelon',
+      'ice cream', 'hot chips', 'dumplings', 'peanut butter', 'toast',
+      'birthday cake', 'ramen', 'nachos', 'mango', 'cheeseburger', 'popcorn',
+      'porridge', 'lemonade', 'garlic bread', 'meat pie', 'pavlova', 'curry',
+      'olives', 'scrambled eggs',
+    ] },
+    { id: 'people', name: 'Famous people', words: [
+      'Albert Einstein', 'Beyonce', 'Taylor Swift', 'Shakespeare', 'Cleopatra',
+      'Elon Musk', 'Julius Caesar', 'Serena Williams', 'Mozart', 'Steve Irwin',
+      'Marie Curie', 'Bob Marley', 'Leonardo da Vinci', 'Oprah Winfrey',
+      'Napoleon', 'David Attenborough', 'Michael Jordan', 'Frida Kahlo',
+      'Keanu Reeves', 'Nelson Mandela', 'Lady Gaga', 'Isaac Newton',
+      'Vincent van Gogh', 'Cristiano Ronaldo', 'Amelia Earhart',
+    ] },
+    { id: 'places', name: 'Places', words: [
+      'Paris', 'the Sahara', 'Antarctica', 'Sydney Opera House', 'Venice',
+      'Mount Everest', 'the Amazon', 'Tokyo', 'the Great Barrier Reef',
+      'Las Vegas', 'the Grand Canyon', 'Iceland', 'Machu Picchu', 'Bondi Beach',
+      'the Moon', 'New York', 'Uluru', 'Hawaii', 'the Pyramids', 'London',
+      'the Colosseum', 'Niagara Falls', 'Bali', 'Stonehenge', 'Cairo',
+    ] },
+    { id: 'movies', name: 'Movies and TV', words: [
+      'Titanic', 'Jurassic Park', 'The Lion King', 'Star Wars', 'Friends',
+      'Breaking Bad', 'Harry Potter', 'The Simpsons', 'Shrek', 'Home Alone',
+      'The Office', 'Frozen', 'Jaws', 'Toy Story', 'Game of Thrones',
+      'The Matrix', 'Finding Nemo', 'Stranger Things', 'Rocky', 'Avatar',
+      'Squid Game', 'Spider-Man', 'The Godfather', 'Bluey', 'Mean Girls',
+    ] },
+    { id: 'sport', name: 'Sport', words: [
+      'cricket', 'surfing', 'basketball', 'chess', 'marathon', 'boxing',
+      'gymnastics', 'skateboarding', 'tennis', 'rock climbing', 'golf',
+      'ice hockey', 'swimming', 'rugby', 'archery', 'darts', 'sumo',
+      'figure skating', 'cycling', 'bowling', 'fencing', 'netball',
+      'weightlifting', 'snooker', 'water polo',
+    ] },
+    { id: 'objects', name: 'Around the house', words: [
+      'toothbrush', 'kettle', 'vacuum cleaner', 'doorbell', 'umbrella',
+      'washing machine', 'candle', 'mirror', 'stapler', 'pillow', 'hairdryer',
+      'fridge magnet', 'shoelace', 'remote control', 'ironing board',
+      'coat hanger', 'sunscreen', 'clothes peg', 'torch', 'shower curtain',
+      'toaster', 'alarm clock', 'wheelie bin', 'lamp shade', 'tape measure',
+    ] },
+    { id: 'jobs', name: 'Jobs', words: [
+      'dentist', 'firefighter', 'barista', 'astronaut', 'plumber', 'lifeguard',
+      'referee', 'librarian', 'tattoo artist', 'pilot', 'farmer', 'accountant',
+      'nurse', 'bus driver', 'chef', 'electrician', 'journalist', 'lawyer',
+      'hairdresser', 'vet', 'bricklayer', 'flight attendant', 'photographer',
+      'park ranger', 'magician',
+    ] },
+    { id: 'music', name: 'Music', words: [
+      'drums', 'karaoke', 'violin', 'bagpipes', 'DJ', 'choir', 'ukulele',
+      'heavy metal', 'jazz', 'the national anthem', 'saxophone', 'opera',
+      'busker', 'vinyl record', 'music festival', 'accordion', 'rap battle',
+      'triangle', 'church organ', 'harmonica', 'boy band', 'lullaby',
+      'guitar solo', 'cowbell', 'theme song',
+    ] },
+    { id: 'nature', name: 'Nature and weather', words: [
+      'thunderstorm', 'rainbow', 'volcano', 'snow', 'earthquake', 'sunset',
+      'tornado', 'waterfall', 'fog', 'hailstone', 'lightning', 'tide',
+      'bushfire', 'eclipse', 'desert', 'glacier', 'monsoon', 'quicksand',
+      'coral', 'cave', 'swamp', 'avalanche', 'geyser', 'full moon', 'drought',
+    ] },
+  ];
+
+  const RANDOM_ID = 'random';
+
+  const el = (id) => document.getElementById(id);
+  const setup = el('setupScreen');
+  const play = el('playScreen');
+  const done = el('doneScreen');
+  const stage = el('stage');
+
+  let categoryId = 'animals';
+  let players = 5;
+  let imposterAt = 0;
+  let secretWord = '';
+  let roundCategory = '';
+  let current = 0;
+  let shown = false;
+
+  /* ---------- setup ---------- */
+
+  function buildCategoryButtons() {
+    const grid = el('catGrid');
+    const options = CATEGORIES.concat([{ id: RANDOM_ID, name: 'Surprise me' }]);
+
+    for (const cat of options) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cat' + (cat.id === categoryId ? ' active' : '');
+      b.dataset.id = cat.id;
+      b.textContent = cat.name;
+      b.addEventListener('click', () => {
+        categoryId = cat.id;
+        grid.querySelectorAll('.cat').forEach((n) => {
+          n.classList.toggle('active', n.dataset.id === categoryId);
+        });
+      });
+      grid.appendChild(b);
+    }
+  }
+
+  function pick(list) {
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  function startGame() {
+    const n = parseInt(el('playerCount').value, 10);
+    if (!Number.isFinite(n) || n < 3 || n > 20) {
+      alert('Pick a player count between 3 and 20.');
+      return;
+    }
+    players = n;
+
+    const chosen = categoryId === RANDOM_ID ? pick(CATEGORIES)
+      : CATEGORIES.find((c) => c.id === categoryId);
+
+    roundCategory = chosen.name;
+    secretWord = pick(chosen.words);
+    imposterAt = Math.floor(Math.random() * players);
+    current = 0;
+
+    showScreen(play);
+    renderCard();
+  }
+
+  /* ---------- play ---------- */
+
+  function showScreen(which) {
+    for (const s of [setup, play, done]) s.classList.toggle('active', s === which);
+  }
+
+  function renderCard() {
+    const isImposter = current === imposterAt;
+
+    el('who').textContent = 'Player ' + (current + 1) + ' of ' + players;
+    el('stageCategory').textContent = roundCategory;
+    el('stageWord').textContent = isImposter ? 'IMPOSTER' : secretWord;
+    el('stageWord').classList.toggle('imposter', isImposter);
+    el('stageRole').textContent = isImposter
+      ? 'No word for you. Bluff a clue that fits the category.'
+      : 'You are a civilian.';
+
+    el('nextBtn').textContent = current === players - 1 ? 'Done' : 'Next player';
+
+    conceal();
+  }
+
+  function conceal() {
+    shown = false;
+    stage.classList.add('concealed');
+    el('revealBtn').textContent = 'Show word';
+  }
+
+  function toggleReveal() {
+    shown = !shown;
+    stage.classList.toggle('concealed', !shown);
+    el('revealBtn').textContent = shown ? 'Hide word' : 'Show word';
+  }
+
+  function nextPlayer() {
+    if (current === players - 1) {
+      el('doneRole').textContent = 'Category: ' + roundCategory;
+      showScreen(done);
+      return;
+    }
+    current += 1;
+    renderCard();
+  }
+
+  function newGame() {
+    showScreen(setup);
+  }
+
+  function reviewCards() {
+    current = 0;
+    showScreen(play);
+    renderCard();
+  }
+
+  buildCategoryButtons();
+  el('startBtn').addEventListener('click', startGame);
+  el('revealBtn').addEventListener('click', toggleReveal);
+  el('nextBtn').addEventListener('click', nextPlayer);
+  el('newBtn').addEventListener('click', newGame);
+  el('againBtn').addEventListener('click', newGame);
+  el('reviewBtn').addEventListener('click', reviewCards);
+})();
+</script>
+
+</body>
+</html>
