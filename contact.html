@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact - mtw4244.work</title>
+<meta name="description" content="Contact, a pass-the-phone word game. One player, the Thinker, gets a secret word and its first letter. Everyone else tries to guess it before someone shouts contact.">
+<link rel="stylesheet" href="style.css">
+<style>
+  .game-wrap { max-width: 620px; margin: 0 auto; padding: 28px 18px 40px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .field { margin: 22px 0; }
+  .field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .count-row { display: flex; align-items: center; gap: 12px; }
+  .count-row input {
+    width: 84px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 18px;
+    text-align: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--fg);
+    border-radius: 8px;
+  }
+  .count-note { font-size: 13px; color: var(--muted); }
+
+  .wordbank {
+    width: 100%;
+    resize: vertical;
+    min-height: 120px;
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 14.5px;
+    line-height: 1.55;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--fg);
+    border-radius: 8px;
+  }
+  .wordbank:focus { outline: none; border-color: var(--line-hover); }
+
+  .field-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .field-note { font-size: 13px; color: var(--muted); }
+
+  .link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .link-btn:hover { color: var(--fg); }
+
+  .card-stage {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius, 10px);
+    padding: 40px 22px;
+    margin: 20px 0;
+    min-height: 210px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .stage-category {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+
+  .stage-word {
+    font-size: clamp(28px, 8vw, 44px);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--fg);
+    word-break: break-word;
+  }
+  .stage-word.guesser { color: var(--muted); letter-spacing: 0.04em; }
+
+  .stage-role { font-size: 14px; color: var(--muted); margin-top: 12px; max-width: 40ch; }
+
+  .stage-hide {
+    position: relative;
+    width: 100%;
+    min-height: 104px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .concealed .stage-word,
+  .concealed .stage-role {
+    visibility: hidden;
+    position: absolute;
+    user-select: none;
+  }
+
+  .missing-tex {
+    display: none;
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background-color: #000;
+    background-image: url("missing-texture.png");
+    background-repeat: repeat;
+    background-size: 34px 34px;
+    image-rendering: pixelated;
+  }
+  .concealed .missing-tex { display: block; }
+
+  .who { font-size: 15px; color: var(--muted); margin-bottom: 4px; }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+
+  .game-wrap .gbtn {
+    padding: 11px 18px;
+    font: inherit;
+    font-size: 15px;
+    color: var(--fg);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .game-wrap .gbtn:hover { border-color: var(--line-hover); }
+  .game-wrap .gbtn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .game-wrap .gbtn.primary:hover { opacity: 0.9; }
+
+  .note { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 18px 0 0; }
+
+  .rules {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--muted);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 22px 0;
+  }
+  .rules h2 { font-size: 15px; margin: 0 0 8px; color: var(--fg); }
+  .rules ol { margin: 0; padding-left: 20px; }
+  .rules li { margin: 6px 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+
+  .back { display: inline-block; margin-top: 26px; font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="game-wrap">
+
+  <h1>Contact</h1>
+
+  <!-- ---------- setup ---------- -->
+  <section class="screen active" id="setupScreen">
+
+    <div class="rules">
+      <h2>How to play</h2>
+      <ol>
+        <li>One player is picked as the Thinker and gets a secret word.</li>
+        <li>The Thinker says the word's first letter out loud.</li>
+        <li>Guessers call out a word starting with those letters and give a clue for it.</li>
+        <li>If the Thinker knows what the guesser is thinking of, they say "no contact" and play continues. If another guesser figures out the same word first, they shout "contact" before the Thinker can respond, and that letter is confirmed.</li>
+        <li>Once the whole word is spelled out this way, guessers win. The Thinker wins by never getting caught out.</li>
+      </ol>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="playerCount">Players</label>
+      <div class="count-row">
+        <input type="number" id="playerCount" min="3" max="20" value="5" inputmode="numeric">
+        <span class="count-note">3 to 20</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="wordBank">Words</label>
+      <textarea class="wordbank" id="wordBank" rows="7"></textarea>
+      <div class="field-actions">
+        <span class="field-note">Comma or newline separated. Edit freely, or add your own.</span>
+        <button type="button" class="link-btn" id="resetWords">Reset to preset list</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="gbtn primary" type="button" id="startBtn">Start game</button>
+    </div>
+  </section>
+
+  <!-- ---------- play ---------- -->
+  <section class="screen" id="playScreen">
+    <div class="who" id="who">Player 1</div>
+
+    <div class="card-stage concealed" id="stage">
+      <div class="stage-category" id="stageCategory"></div>
+      <div class="stage-hide">
+        <div class="stage-word" id="stageWord"></div>
+        <div class="stage-role" id="stageRole"></div>
+        <div class="missing-tex" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="gbtn" type="button" id="revealBtn">Show word</button>
+      <button class="gbtn primary" type="button" id="nextBtn">Next player</button>
+    </div>
+    <div class="btn-row">
+      <button class="gbtn" type="button" id="newBtn">New game</button>
+    </div>
+
+    <p class="note" id="playNote">
+      Pass the phone around. Tap Show word, look, then tap Next player before
+      you hand it on. The word hides itself every time.
+    </p>
+  </section>
+
+  <!-- ---------- everyone has seen it ---------- -->
+  <section class="screen" id="doneScreen">
+    <div class="card-stage">
+      <div class="stage-word">Ready</div>
+      <div class="stage-role">Everyone has seen their card.</div>
+    </div>
+    <p class="note">
+      The Thinker says the first letter out loud, and everyone else starts
+      guessing words that fit.
+    </p>
+    <div class="btn-row">
+      <button class="gbtn" type="button" id="reviewBtn">Show cards again</button>
+      <button class="gbtn primary" type="button" id="againBtn">New game</button>
+    </div>
+  </section>
+
+  <a class="back" href="/">back to mtw4244.work</a>
+</div>
+
+<script src="theme.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const PRESET_WORDS = [
+    'elephant', 'umbrella', 'pizza', 'guitar', 'rainbow', 'telescope',
+    'pyramid', 'volcano', 'penguin', 'sandwich', 'lighthouse', 'dinosaur',
+    'spaceship', 'waterfall', 'dragon', 'snowman', 'kangaroo', 'treasure',
+    'castle', 'compass', 'jellyfish', 'campfire', 'glacier', 'parachute',
+    'cactus', 'lantern', 'meteor', 'octopus', 'bicycle', 'drum', 'mirror',
+    'whirlpool', 'avalanche', 'comet', 'canyon', 'igloo', 'marshmallow',
+    'submarine',
+  ];
+
+  const el = (id) => document.getElementById(id);
+  const setup = el('setupScreen');
+  const play = el('playScreen');
+  const done = el('doneScreen');
+  const stage = el('stage');
+
+  let players = 5;
+  let thinkerAt = 0;
+  let secretWord = '';
+  let current = 0;
+  let shown = false;
+
+  function presetText() {
+    return PRESET_WORDS.join(', ');
+  }
+
+  function parseWords(text) {
+    return text.split(/[,\n]/).map((w) => w.trim()).filter(Boolean);
+  }
+
+  function pick(list) {
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  /* ---------- setup ---------- */
+
+  function startGame() {
+    const n = parseInt(el('playerCount').value, 10);
+    if (!Number.isFinite(n) || n < 3 || n > 20) {
+      alert('Pick a player count between 3 and 20.');
+      return;
+    }
+
+    const pool = parseWords(el('wordBank').value);
+    if (pool.length < 1) {
+      alert('Add at least one word.');
+      return;
+    }
+
+    players = n;
+    secretWord = pick(pool);
+    thinkerAt = Math.floor(Math.random() * players);
+    current = 0;
+
+    showScreen(play);
+    renderCard();
+  }
+
+  /* ---------- play ---------- */
+
+  function showScreen(which) {
+    for (const s of [setup, play, done]) s.classList.toggle('active', s === which);
+  }
+
+  function renderCard() {
+    const isThinker = current === thinkerAt;
+
+    el('who').textContent = 'Player ' + (current + 1) + ' of ' + players;
+    el('stageCategory').textContent = isThinker ? 'You are the Thinker' : '';
+    el('stageWord').textContent = isThinker ? secretWord : 'GUESSER';
+    el('stageWord').classList.toggle('guesser', !isThinker);
+    el('stageRole').textContent = isThinker
+      ? 'Say just the first letter out loud when play starts. Keep the rest to yourself.'
+      : 'No word for you. Wait for the letter, then start guessing.';
+
+    el('nextBtn').textContent = current === players - 1 ? 'Done' : 'Next player';
+
+    conceal();
+  }
+
+  function conceal() {
+    shown = false;
+    stage.classList.add('concealed');
+    el('revealBtn').textContent = 'Show word';
+  }
+
+  function toggleReveal() {
+    shown = !shown;
+    stage.classList.toggle('concealed', !shown);
+    el('revealBtn').textContent = shown ? 'Hide word' : 'Show word';
+  }
+
+  function nextPlayer() {
+    if (current === players - 1) {
+      showScreen(done);
+      return;
+    }
+    current += 1;
+    renderCard();
+  }
+
+  function newGame() {
+    showScreen(setup);
+  }
+
+  function reviewCards() {
+    current = 0;
+    showScreen(play);
+    renderCard();
+  }
+
+  el('wordBank').value = presetText();
+  el('resetWords').addEventListener('click', () => { el('wordBank').value = presetText(); });
+  el('startBtn').addEventListener('click', startGame);
+  el('revealBtn').addEventListener('click', toggleReveal);
+  el('nextBtn').addEventListener('click', nextPlayer);
+  el('newBtn').addEventListener('click', newGame);
+  el('againBtn').addEventListener('click', newGame);
+  el('reviewBtn').addEventListener('click', reviewCards);
+})();
+</script>
+
+</body>
+</html>

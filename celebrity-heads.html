@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Celebrity Heads - mtw4244.work</title>
+<meta name="description" content="Celebrity Heads, a pass-the-phone party game. Everyone gets shown a name that isn't theirs, then asks yes/no questions to work out who they are.">
+<link rel="stylesheet" href="style.css">
+<style>
+  .game-wrap { max-width: 620px; margin: 0 auto; padding: 28px 18px 40px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .field { margin: 22px 0; }
+  .field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .count-row { display: flex; align-items: center; gap: 12px; }
+  .count-row input {
+    width: 84px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 18px;
+    text-align: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--fg);
+    border-radius: 8px;
+  }
+  .count-note { font-size: 13px; color: var(--muted); }
+
+  .wordbank {
+    width: 100%;
+    resize: vertical;
+    min-height: 120px;
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 14.5px;
+    line-height: 1.55;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--fg);
+    border-radius: 8px;
+  }
+  .wordbank:focus { outline: none; border-color: var(--line-hover); }
+
+  .field-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .field-note { font-size: 13px; color: var(--muted); }
+
+  .link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .link-btn:hover { color: var(--fg); }
+
+  .card-stage {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius, 10px);
+    padding: 40px 22px;
+    margin: 20px 0;
+    min-height: 210px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .stage-category {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+
+  .stage-word {
+    font-size: clamp(28px, 8vw, 44px);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--fg);
+    word-break: break-word;
+  }
+
+  .stage-role { font-size: 14px; color: var(--muted); margin-top: 12px; max-width: 40ch; }
+
+  .stage-hide {
+    position: relative;
+    width: 100%;
+    min-height: 104px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .concealed .stage-word,
+  .concealed .stage-role {
+    visibility: hidden;
+    position: absolute;
+    user-select: none;
+  }
+
+  .missing-tex {
+    display: none;
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background-color: #000;
+    background-image: url("missing-texture.png");
+    background-repeat: repeat;
+    background-size: 34px 34px;
+    image-rendering: pixelated;
+  }
+  .concealed .missing-tex { display: block; }
+
+  .who { font-size: 15px; color: var(--muted); margin-bottom: 4px; }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+
+  .game-wrap .gbtn {
+    padding: 11px 18px;
+    font: inherit;
+    font-size: 15px;
+    color: var(--fg);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .game-wrap .gbtn:hover { border-color: var(--line-hover); }
+  .game-wrap .gbtn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .game-wrap .gbtn.primary:hover { opacity: 0.9; }
+
+  .note { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 18px 0 0; }
+
+  .rules {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--muted);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 22px 0;
+  }
+  .rules h2 { font-size: 15px; margin: 0 0 8px; color: var(--fg); }
+  .rules ol { margin: 0; padding-left: 20px; }
+  .rules li { margin: 6px 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+
+  .back { display: inline-block; margin-top: 26px; font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="game-wrap">
+
+  <h1>Celebrity Heads</h1>
+
+  <!-- ---------- setup ---------- -->
+  <section class="screen active" id="setupScreen">
+
+    <div class="rules">
+      <h2>How to play</h2>
+      <ol>
+        <li>Every player gets a name that everyone else can see, except them.</li>
+        <li>Pass the phone around. Show each screen to the whole group, but keep it hidden from the one player it belongs to.</li>
+        <li>Once everyone's seen every name but their own, take turns asking yes/no questions about your own name.</li>
+        <li>Keep asking until you guess who you are, then you're out.</li>
+        <li>No objects needed, just the phone going around once.</li>
+      </ol>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="playerCount">Players</label>
+      <div class="count-row">
+        <input type="number" id="playerCount" min="3" max="20" value="6" inputmode="numeric">
+        <span class="count-note">3 to 20</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="wordBank">Names</label>
+      <textarea class="wordbank" id="wordBank" rows="7"></textarea>
+      <div class="field-actions">
+        <span class="field-note">Comma or newline separated. Edit freely, or add your own.</span>
+        <button type="button" class="link-btn" id="resetWords">Reset to preset list</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="gbtn primary" type="button" id="startBtn">Start game</button>
+    </div>
+  </section>
+
+  <!-- ---------- play ---------- -->
+  <section class="screen" id="playScreen">
+    <div class="who" id="who">Player 1</div>
+
+    <div class="card-stage concealed" id="stage">
+      <div class="stage-category" id="stageCategory">This is who they are</div>
+      <div class="stage-hide">
+        <div class="stage-word" id="stageWord"></div>
+        <div class="stage-role" id="stageRole"></div>
+        <div class="missing-tex" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="gbtn" type="button" id="revealBtn">Show name</button>
+      <button class="gbtn primary" type="button" id="nextBtn">Next player</button>
+    </div>
+    <div class="btn-row">
+      <button class="gbtn" type="button" id="newBtn">New game</button>
+    </div>
+
+    <p class="note" id="playNote">
+      Make sure the named player can't see the screen before you tap Show name.
+      Everyone else looks and remembers it. Tap Next player once they have.
+    </p>
+  </section>
+
+  <!-- ---------- everyone has seen it ---------- -->
+  <section class="screen" id="doneScreen">
+    <div class="card-stage">
+      <div class="stage-word">Ready</div>
+      <div class="stage-role">Everyone knows every name but their own.</div>
+    </div>
+    <p class="note">
+      Take turns asking the group yes/no questions about your own name.
+      "Am I real?" "Am I a real person?" "Am I from a film?" Keep going until you guess it.
+    </p>
+    <div class="btn-row">
+      <button class="gbtn" type="button" id="reviewBtn">Show cards again</button>
+      <button class="gbtn primary" type="button" id="againBtn">New game</button>
+    </div>
+  </section>
+
+  <a class="back" href="/">back to mtw4244.work</a>
+</div>
+
+<script src="theme.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const PRESET_NAMES = [
+    'Albert Einstein', 'Taylor Swift', 'Sherlock Holmes', 'Cleopatra',
+    'Homer Simpson', 'Beyonce', 'Harry Potter', 'Elon Musk', 'Wonder Woman',
+    'Napoleon', 'Shrek', 'Marie Curie', 'Batman', 'Oprah Winfrey',
+    'Mickey Mouse', 'Nelson Mandela', 'SpongeBob SquarePants',
+    'Serena Williams', 'Darth Vader', 'Frida Kahlo', 'Spider-Man',
+    'Cristiano Ronaldo', 'Elsa', 'David Attenborough', 'Yoda', 'Lady Gaga',
+    'Winnie the Pooh', 'Michael Jordan', 'Willy Wonka', 'Amelia Earhart',
+    'Gandalf', 'Steve Irwin', 'Buzz Lightyear', 'Keanu Reeves', 'Dracula',
+    'Cinderella',
+  ];
+
+  const el = (id) => document.getElementById(id);
+  const setup = el('setupScreen');
+  const play = el('playScreen');
+  const done = el('doneScreen');
+  const stage = el('stage');
+
+  let players = 6;
+  let assigned = [];
+  let current = 0;
+  let shown = false;
+
+  function presetText() {
+    return PRESET_NAMES.join(', ');
+  }
+
+  function parseWords(text) {
+    return text.split(/[,\n]/).map((w) => w.trim()).filter(Boolean);
+  }
+
+  function shuffle(list) {
+    const a = list.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  /* ---------- setup ---------- */
+
+  function startGame() {
+    const n = parseInt(el('playerCount').value, 10);
+    if (!Number.isFinite(n) || n < 3 || n > 20) {
+      alert('Pick a player count between 3 and 20.');
+      return;
+    }
+
+    const pool = parseWords(el('wordBank').value);
+    if (pool.length < n) {
+      alert('Add at least ' + n + ' names, or lower the player count. Currently ' + pool.length + '.');
+      return;
+    }
+
+    players = n;
+    assigned = shuffle(pool).slice(0, players);
+    current = 0;
+
+    showScreen(play);
+    renderCard();
+  }
+
+  /* ---------- play ---------- */
+
+  function showScreen(which) {
+    for (const s of [setup, play, done]) s.classList.toggle('active', s === which);
+  }
+
+  function renderCard() {
+    el('who').textContent = 'Player ' + (current + 1) + ' of ' + players;
+    el('stageWord').textContent = assigned[current];
+    el('stageRole').textContent = 'Not their word to see. Everyone but Player ' + (current + 1) + ' can look.';
+
+    el('nextBtn').textContent = current === players - 1 ? 'Done' : 'Next player';
+
+    conceal();
+  }
+
+  function conceal() {
+    shown = false;
+    stage.classList.add('concealed');
+    el('revealBtn').textContent = 'Show name';
+  }
+
+  function toggleReveal() {
+    shown = !shown;
+    stage.classList.toggle('concealed', !shown);
+    el('revealBtn').textContent = shown ? 'Hide name' : 'Show name';
+  }
+
+  function nextPlayer() {
+    if (current === players - 1) {
+      showScreen(done);
+      return;
+    }
+    current += 1;
+    renderCard();
+  }
+
+  function newGame() {
+    showScreen(setup);
+  }
+
+  function reviewCards() {
+    current = 0;
+    showScreen(play);
+    renderCard();
+  }
+
+  el('wordBank').value = presetText();
+  el('resetWords').addEventListener('click', () => { el('wordBank').value = presetText(); });
+  el('startBtn').addEventListener('click', startGame);
+  el('revealBtn').addEventListener('click', toggleReveal);
+  el('nextBtn').addEventListener('click', nextPlayer);
+  el('newBtn').addEventListener('click', newGame);
+  el('againBtn').addEventListener('click', newGame);
+  el('reviewBtn').addEventListener('click', reviewCards);
+})();
+</script>
+
+</body>
+</html>
