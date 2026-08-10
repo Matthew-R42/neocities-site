@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undercover - mtw4244.work</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .game-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+        }
+
+        .setup-screen, .game-screen {
+            display: none;
+        }
+
+        .setup-screen.active, .game-screen.active {
+            display: block;
+        }
+
+        .player-count-input {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin: 2rem 0;
+        }
+
+        .player-count-input input {
+            width: 80px;
+            padding: 0.5rem;
+            font-size: 1.2rem;
+            background: var(--card);
+            border: 1px solid var(--line);
+            color: var(--fg);
+            border-radius: 4px;
+        }
+
+        .word-display {
+            background: var(--card);
+            border: 2px solid var(--line);
+            padding: 3rem 2rem;
+            margin: 2rem 0;
+            text-align: center;
+            border-radius: 8px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .word {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--fg);
+            margin-bottom: 0.5rem;
+        }
+
+        .role {
+            font-size: 1rem;
+            color: var(--muted);
+            margin-top: 0.5rem;
+        }
+
+        .player-indicator {
+            font-size: 1.2rem;
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+
+        .hidden {
+            filter: blur(20px);
+            user-select: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            background: var(--card);
+            border: 1px solid var(--line);
+            color: var(--fg);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            border-color: var(--line-hover);
+            background: var(--bg);
+        }
+
+        button.primary {
+            background: var(--fg);
+            color: var(--bg);
+            border-color: var(--fg);
+        }
+
+        button.primary:hover {
+            opacity: 0.9;
+        }
+
+        .info {
+            color: var(--muted);
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+
+        .rules {
+            background: var(--card);
+            border-left: 3px solid var(--line);
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+
+        .rules h3 {
+            margin-top: 0;
+            color: var(--fg);
+        }
+
+        .rules li {
+            margin: 0.5rem 0;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Undercover</h1>
+
+        <div class="setup-screen active">
+            <div class="rules">
+                <h3>How to Play</h3>
+                <ol>
+                    <li>Everyone except one person gets the same word</li>
+                    <li>The <strong>Undercover</strong> gets a different (but related) word</li>
+                    <li>Go around the circle - each player gives ONE clue about their word</li>
+                    <li>After each round, vote on who you think is the Undercover</li>
+                    <li>Undercover wins if they survive until 3 or fewer players remain</li>
+                    <li>Civilians win if they eliminate the Undercover</li>
+                </ol>
+            </div>
+
+            <div class="player-count-input">
+                <label for="playerCount">Number of players:</label>
+                <input type="number" id="playerCount" min="3" max="12" value="5">
+            </div>
+
+            <button class="primary" onclick="startGame()">Start Game</button>
+        </div>
+
+        <div class="game-screen">
+            <div class="player-indicator" id="playerIndicator">Player 1</div>
+
+            <div class="word-display">
+                <div id="wordDisplay" class="hidden">
+                    <div class="word" id="word"></div>
+                    <div class="role" id="role"></div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="revealWord()">Show Word</button>
+                <button onclick="hideWord()">Hide Word</button>
+                <button onclick="nextPlayer()" class="primary">Next Player</button>
+            </div>
+
+            <div class="button-group">
+                <button onclick="resetGame()">New Game</button>
+            </div>
+
+            <div class="info">
+                <p>Pass the device around. Each player taps "Show Word" to see their word privately, then "Hide Word" before passing to the next player.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="theme.js"></script>
+    <script>
+        // Word pairs: [civilian word, undercover word]
+        const wordPairs = [
+            ['dog', 'cat'],
+            ['coffee', 'tea'],
+            ['pizza', 'burger'],
+            ['winter', 'summer'],
+            ['car', 'bike'],
+            ['book', 'movie'],
+            ['ocean', 'lake'],
+            ['phone', 'tablet'],
+            ['guitar', 'piano'],
+            ['apple', 'orange'],
+            ['bread', 'rice'],
+            ['rain', 'snow'],
+            ['sun', 'moon'],
+            ['mountain', 'hill'],
+            ['river', 'stream'],
+            ['shirt', 'jacket'],
+            ['shoes', 'boots'],
+            ['chair', 'stool'],
+            ['pen', 'pencil'],
+            ['soccer', 'basketball'],
+            ['train', 'bus'],
+            ['chicken', 'turkey'],
+            ['honey', 'syrup'],
+            ['painting', 'drawing'],
+            ['comedy', 'drama'],
+            ['breakfast', 'brunch'],
+            ['novel', 'short story'],
+            ['hotel', 'motel'],
+            ['laptop', 'desktop'],
+            ['email', 'letter']
+        ];
+
+        let currentPlayer = 0;
+        let totalPlayers = 5;
+        let undercoverIndex = 0;
+        let civilianWord = '';
+        let undercoverWord = '';
+        let revealed = false;
+
+        function startGame() {
+            totalPlayers = parseInt(document.getElementById('playerCount').value);
+            if (totalPlayers < 3 || totalPlayers > 12) {
+                alert('Please choose between 3 and 12 players');
+                return;
+            }
+
+            // Pick random word pair
+            const pair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
+            civilianWord = pair[0];
+            undercoverWord = pair[1];
+
+            // Pick random undercover
+            undercoverIndex = Math.floor(Math.random() * totalPlayers);
+
+            currentPlayer = 0;
+            revealed = false;
+
+            document.querySelector('.setup-screen').classList.remove('active');
+            document.querySelector('.game-screen').classList.add('active');
+
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('playerIndicator').textContent = `Player ${currentPlayer + 1}`;
+
+            const isUndercover = currentPlayer === undercoverIndex;
+            const word = isUndercover ? undercoverWord : civilianWord;
+            const role = isUndercover ? 'You are the UNDERCOVER' : 'You are a CIVILIAN';
+
+            document.getElementById('word').textContent = word;
+            document.getElementById('role').textContent = role;
+
+            if (!revealed) {
+                document.getElementById('wordDisplay').classList.add('hidden');
+            }
+        }
+
+        function revealWord() {
+            revealed = true;
+            document.getElementById('wordDisplay').classList.remove('hidden');
+        }
+
+        function hideWord() {
+            revealed = false;
+            document.getElementById('wordDisplay').classList.add('hidden');
+        }
+
+        function nextPlayer() {
+            currentPlayer = (currentPlayer + 1) % totalPlayers;
+            revealed = false;
+            updateDisplay();
+
+            if (currentPlayer === 0) {
+                const cont = confirm('Round complete! Everyone has seen their word. Continue to next round?');
+                if (!cont) {
+                    currentPlayer = totalPlayers - 1;
+                }
+            }
+        }
+
+        function resetGame() {
+            document.querySelector('.setup-screen').classList.add('active');
+            document.querySelector('.game-screen').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
