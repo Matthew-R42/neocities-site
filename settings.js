@@ -155,6 +155,8 @@ const SITE_THEMES = [
 
   /* ---------- panel ---------- */
 
+  // Section headings borrow the homepage's "● PROJECTS" idiom, dot and all, so
+  // the panel reads as part of the site rather than as a control surface.
   function section(title) {
     const wrap = document.createElement('div');
     wrap.className = 'site-set-section';
@@ -165,6 +167,9 @@ const SITE_THEMES = [
     return wrap;
   }
 
+  // Each swatch is a miniature of the site in that theme: page background, a
+  // card sitting on it, and a heading and body line. Far easier to recognise
+  // than a row of flat colour bands.
   function buildThemes(onChange) {
     const grid = document.createElement('div');
     grid.className = 'site-set-swatches';
@@ -175,10 +180,37 @@ const SITE_THEMES = [
       swatch.className = 'site-set-swatch';
       swatch.dataset.id = t.id;
       swatch.title = t.name;
-      swatch.innerHTML =
-        `<span class="site-set-preview"><span style="background:${t.bg}"></span><span style="background:${t.card}"></span><span style="background:${t.muted}"></span></span>` +
-        `<span class="site-set-name"></span>`;
-      swatch.querySelector('.site-set-name').textContent = t.name;
+      swatch.setAttribute('aria-label', t.name);
+
+      const preview = document.createElement('span');
+      preview.className = 'site-set-preview';
+      preview.style.background = t.bg;
+
+      // A heading sitting on the page background, then a card below it. Shows
+      // bg, fg, card, line and muted all at once.
+      const barTitle = document.createElement('span');
+      barTitle.className = 'site-set-bar';
+      barTitle.style.background = t.fg;
+
+      const mini = document.createElement('span');
+      mini.className = 'site-set-mini';
+      mini.style.background = t.card;
+      mini.style.borderColor = t.line;
+
+      const barBody = document.createElement('span');
+      barBody.className = 'site-set-bar site-set-bar-sm';
+      barBody.style.background = t.muted;
+
+      mini.appendChild(barBody);
+      preview.appendChild(barTitle);
+      preview.appendChild(mini);
+
+      const name = document.createElement('span');
+      name.className = 'site-set-name';
+      name.textContent = t.name;
+
+      swatch.appendChild(preview);
+      swatch.appendChild(name);
       swatch.addEventListener('click', () => {
         set('theme', t.id);
         onChange();
@@ -188,7 +220,7 @@ const SITE_THEMES = [
     return grid;
   }
 
-  function buildSlider(spec, onChange) {
+  function buildSlider(spec) {
     const row = document.createElement('div');
     row.className = 'site-set-row';
 
@@ -209,9 +241,17 @@ const SITE_THEMES = [
     input.max = String(spec.max);
     input.step = String(spec.step);
 
+    // --p is how far along the track the value sits. The CSS paints the filled
+    // part of the track from it, which a bare range input cannot do itself.
+    function paint() {
+      const ratio = (settings[spec.key] - spec.min) / (spec.max - spec.min);
+      input.style.setProperty('--p', ratio);
+      val.textContent = pct(settings[spec.key]);
+    }
+
     input.addEventListener('input', () => {
       set(spec.key, parseFloat(input.value));
-      val.textContent = pct(settings[spec.key]);
+      paint();
     });
 
     const head = document.createElement('div');
@@ -223,7 +263,7 @@ const SITE_THEMES = [
 
     row.sync = () => {
       input.value = String(settings[spec.key]);
-      val.textContent = pct(settings[spec.key]);
+      paint();
     };
     return row;
   }
@@ -232,26 +272,38 @@ const SITE_THEMES = [
     const row = document.createElement('label');
     row.className = 'site-set-toggle';
 
+    const text = document.createElement('span');
+    text.className = 'site-set-label';
+    text.textContent = labelText;
+
     const input = document.createElement('input');
     input.type = 'checkbox';
-    const span = document.createElement('span');
-    span.textContent = labelText;
+
+    const track = document.createElement('span');
+    track.className = 'site-set-switch';
 
     input.addEventListener('change', () => set(key, input.checked));
 
+    row.appendChild(text);
     row.appendChild(input);
-    row.appendChild(span);
+    row.appendChild(track);
     row.sync = () => { input.checked = settings[key]; };
     return row;
   }
 
   function init() {
+    const SLIDERS_ICON =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/>' +
+      '<path d="M1 14h6M9 8h6M17 16h6"/></svg>';
+
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'site-set-btn';
     btn.setAttribute('aria-label', 'Site settings');
     btn.setAttribute('aria-expanded', 'false');
-    btn.textContent = 'Settings';
+    btn.innerHTML = SLIDERS_ICON + '<span>Settings</span>';
 
     const panel = document.createElement('div');
     panel.className = 'site-set-panel hidden';
@@ -260,15 +312,36 @@ const SITE_THEMES = [
 
     const syncers = [];
 
-    // Theme
+    // Header
+    const head = document.createElement('div');
+    head.className = 'site-set-head';
+    const title = document.createElement('span');
+    title.className = 'site-set-title';
+    title.textContent = 'Settings';
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'site-set-close';
+    close.setAttribute('aria-label', 'Close settings');
+    close.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+      'stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    head.appendChild(title);
+    head.appendChild(close);
+    panel.appendChild(head);
+
+    // Theme. The grid scrolls inside its own box: 21 themes stacked in the
+    // panel would push the sliders off the bottom of the screen.
     const themeSection = section('Theme');
-    themeSection.appendChild(buildThemes(() => syncAll()));
+    const themeScroll = document.createElement('div');
+    themeScroll.className = 'site-set-scroll';
+    themeScroll.appendChild(buildThemes(() => syncAll()));
+    themeSection.appendChild(themeScroll);
     panel.appendChild(themeSection);
 
     // Display sliders
     const displaySection = section('Display');
     for (const spec of SLIDERS) {
-      const row = buildSlider(spec, () => syncAll());
+      const row = buildSlider(spec);
       syncers.push(row.sync);
       displaySection.appendChild(row);
     }
@@ -308,12 +381,16 @@ const SITE_THEMES = [
       panel.classList.remove('hidden');
       btn.setAttribute('aria-expanded', 'true');
       panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      const active = panel.querySelector('.site-set-swatch.active');
+      if (active) active.scrollIntoView({ block: 'nearest' });
     }
 
     function closePanel() {
       panel.classList.add('hidden');
       btn.setAttribute('aria-expanded', 'false');
     }
+
+    close.addEventListener('click', closePanel);
 
     btn.addEventListener('click', (e) => {
       e.stopPropagation();

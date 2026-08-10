@@ -297,11 +297,16 @@ footer a:hover { color: var(--fg); }
   pointer-events: none;
 }
 
+/* The launcher matches the pill buttons in the header: same radius, same
+   weight, same hover. It should read as one of the site's own controls. */
 .site-set-btn {
   position: fixed;
   right: 20px;
   bottom: 20px;
   z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 7px;
   font: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -309,77 +314,170 @@ footer a:hover { color: var(--fg); }
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 7px 14px;
+  padding: 8px 15px;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
-.site-set-btn:hover { border-color: var(--line-hover); }
+.site-set-btn svg { width: 14px; height: 14px; flex: 0 0 auto; color: var(--muted); }
+.site-set-btn:hover { border-color: var(--line-hover); transform: translateY(-1px); }
+.site-set-btn:hover svg { color: var(--fg); }
 
 .site-set-panel {
   position: fixed;
   right: 20px;
-  bottom: 76px;
+  bottom: 74px;
   z-index: 30;
-  width: min(380px, 82vw);
-  max-height: 70vh;
+  width: min(340px, 88vw);
+  max-height: min(80vh, 664px);
   overflow-y: auto;
-  padding: 14px;
+  padding: 18px;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
 }
 .site-set-panel.hidden { display: none; }
 
-.site-set-section { margin-bottom: 16px; }
-.site-set-section:last-of-type { margin-bottom: 12px; }
-
-.site-set-h {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding-bottom: 7px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid var(--line);
+/* ---------- header ---------- */
+.site-set-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 19px;
 }
 
+.site-set-title {
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+.site-set-close {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  padding: 0;
+  color: var(--muted);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.site-set-close svg { width: 13px; height: 13px; }
+.site-set-close:hover { color: var(--fg); border-color: var(--line); }
+
+/* ---------- sections ---------- */
+.site-set-section { margin-bottom: 20px; }
+
+/* Echoes the homepage section labels, dot and all. */
+.site-set-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+.site-set-h::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--fg);
+  flex: 0 0 auto;
+}
+
+.site-set-scroll {
+  max-height: 152px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-right: -4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.site-set-scroll::-webkit-scrollbar { width: 5px; }
+.site-set-scroll::-webkit-scrollbar-track { background: transparent; }
+.site-set-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+.site-set-scroll::-webkit-scrollbar-thumb:hover { background: var(--line-hover); }
+
+/* ---------- theme swatches ---------- */
 .site-set-swatches {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
 }
 
 .site-set-swatch {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 6px;
-  border-radius: 8px;
-  border: 1px solid transparent;
+  gap: 6px;
+  padding: 0;
+  border: none;
   background: none;
   cursor: pointer;
   font: inherit;
+  text-align: left;
 }
-.site-set-swatch:hover { border-color: var(--line-hover); }
-.site-set-swatch.active { border-color: var(--muted); }
 
+/* Miniature of a page in that theme: a heading on the page background with a
+   card below it. The selected one gets a ring in the foreground colour. */
 .site-set-preview {
-  width: 100%;
-  height: 26px;
-  border-radius: 6px;
   display: flex;
-  overflow: hidden;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px;
+  height: 46px;
+  border-radius: 9px;
   border: 1px solid var(--line);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.site-set-preview span { flex: 1; }
 
-.site-set-name { font-size: 10.5px; color: var(--muted); text-align: center; line-height: 1.2; }
+.site-set-mini {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  padding: 0 5px;
+  border: 1px solid;
+  border-radius: 5px;
+}
+
+.site-set-bar {
+  display: block;
+  flex: 0 0 auto;
+  height: 4px;
+  width: 60%;
+  border-radius: 2px;
+}
+.site-set-bar-sm { height: 3px; width: 70%; opacity: 0.9; }
+
+.site-set-swatch:hover .site-set-preview { border-color: var(--line-hover); }
+.site-set-swatch.active .site-set-preview {
+  border-color: var(--fg);
+  box-shadow: 0 0 0 1px var(--fg);
+}
+
+.site-set-name {
+  font-size: 10.5px;
+  line-height: 1.25;
+  color: var(--muted);
+  text-align: center;
+  transition: color 0.15s ease;
+}
+.site-set-swatch:hover .site-set-name,
+.site-set-swatch.active .site-set-name { color: var(--fg); }
 
 /* ---------- sliders ---------- */
-.site-set-row { margin-bottom: 13px; }
+.site-set-row { margin-bottom: 14px; }
 .site-set-row:last-child { margin-bottom: 0; }
 
 .site-set-rowhead {
@@ -387,10 +485,10 @@ footer a:hover { color: var(--fg); }
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
-.site-set-label { font-size: 13px; color: var(--fg); }
+.site-set-label { font-size: 13.5px; color: var(--fg); }
 
 .site-set-val {
   font-size: 12px;
@@ -398,59 +496,131 @@ footer a:hover { color: var(--fg); }
   font-variant-numeric: tabular-nums;
 }
 
+/* --p is the 0..1 position of the value, set by settings.js. It paints the
+   track as filled up to the thumb, which a bare range input cannot do. */
 .site-set-slider {
+  --p: 0;
   -webkit-appearance: none;
   appearance: none;
+  display: block;
   width: 100%;
-  height: 4px;
+  height: 16px;
+  background: none;
+  cursor: pointer;
+}
+.site-set-slider::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--fg) 0 calc(var(--p) * 100%),
+    var(--line) calc(var(--p) * 100%) 100%
+  );
+}
+.site-set-slider::-moz-range-track {
+  height: 3px;
   border-radius: 999px;
   background: var(--line);
-  cursor: pointer;
+}
+.site-set-slider::-moz-range-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--fg);
 }
 .site-set-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 13px;
+  height: 13px;
+  margin-top: -5px;
   border-radius: 50%;
   background: var(--fg);
   border: none;
-  cursor: pointer;
+  box-shadow: 0 0 0 3px var(--card);
+  transition: transform 0.12s ease;
 }
 .site-set-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: var(--fg);
   border: none;
-  cursor: pointer;
+  box-shadow: 0 0 0 3px var(--card);
 }
-.site-set-slider:focus-visible { outline: 2px solid var(--muted); outline-offset: 4px; }
+.site-set-slider:hover::-webkit-slider-thumb { transform: scale(1.15); }
+.site-set-slider:focus { outline: none; }
+.site-set-slider:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--muted); }
+.site-set-slider:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--muted); }
 
-/* ---------- toggle ---------- */
+/* ---------- switch ---------- */
 .site-set-toggle {
   display: flex;
   align-items: center;
-  gap: 9px;
-  font-size: 13px;
-  color: var(--fg);
+  justify-content: space-between;
+  gap: 14px;
   cursor: pointer;
 }
-.site-set-toggle input { accent-color: var(--muted); width: 15px; height: 15px; cursor: pointer; }
 
+/* The checkbox stays focusable and screen-reader visible, the span is the
+   thing you actually see. */
+.site-set-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.site-set-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 21px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.site-set-switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.site-set-toggle:hover .site-set-switch { border-color: var(--line-hover); }
+.site-set-toggle input:checked ~ .site-set-switch {
+  background: var(--fg);
+  border-color: var(--fg);
+}
+.site-set-toggle input:checked ~ .site-set-switch::after {
+  transform: translateX(15px);
+  background: var(--card);
+}
+.site-set-toggle input:focus-visible ~ .site-set-switch {
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--muted);
+}
+
+/* Matches .btn-outline in the header. */
 .site-set-reset {
   display: block;
   width: 100%;
-  padding: 8px;
+  padding: 9px;
   font: inherit;
   font-size: 13px;
+  font-weight: 600;
   color: var(--muted);
   background: none;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 999px;
   cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
-.site-set-reset:hover { border-color: var(--line-hover); color: var(--fg); }
+.site-set-reset:hover { border-color: var(--fg); color: var(--fg); }
 
 /* Honour both the OS preference and the in-panel toggle. */
 @media (prefers-reduced-motion: reduce) {
