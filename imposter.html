@@ -56,6 +56,38 @@
   .cat:hover { border-color: var(--line-hover); }
   .cat.active { border-color: var(--muted); color: var(--muted); }
 
+  .wordbank {
+    width: 100%;
+    resize: vertical;
+    min-height: 120px;
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 14.5px;
+    line-height: 1.55;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--fg);
+    border-radius: 8px;
+  }
+  .wordbank:focus { outline: none; border-color: var(--line-hover); }
+  .wordbank:disabled { color: var(--muted); }
+
+  .field-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .field-note { font-size: 13px; color: var(--muted); }
+
+  .link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .link-btn:hover { color: var(--fg); }
+  .link-btn:disabled { color: var(--dim); text-decoration: none; cursor: default; }
+
   .card-stage {
     background: var(--card);
     border: 1px solid var(--line);
@@ -194,6 +226,15 @@
     <div class="field">
       <span class="field-label">Category</span>
       <div class="cat-grid" id="catGrid"></div>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="wordBank">Words</label>
+      <textarea class="wordbank" id="wordBank" rows="7"></textarea>
+      <div class="field-actions">
+        <span class="field-note">Comma or newline separated. Edit freely, or add your own.</span>
+        <button type="button" class="link-btn" id="resetWords">Reset to preset list</button>
+      </div>
     </div>
 
     <div class="btn-row">
@@ -357,6 +398,7 @@
         grid.querySelectorAll('.cat').forEach((n) => {
           n.classList.toggle('active', n.dataset.id === categoryId);
         });
+        syncWordBank();
       });
       grid.appendChild(b);
     }
@@ -364,6 +406,24 @@
 
   function pick(list) {
     return list[Math.floor(Math.random() * list.length)];
+  }
+
+  function parseWords(text) {
+    return text.split(/[,\n]/).map((w) => w.trim()).filter(Boolean);
+  }
+
+  function syncWordBank() {
+    const bank = el('wordBank');
+    if (categoryId === RANDOM_ID) {
+      bank.value = 'A random category is picked when the game starts.';
+      bank.disabled = true;
+      el('resetWords').disabled = true;
+    } else {
+      const cat = CATEGORIES.find((c) => c.id === categoryId);
+      bank.value = cat.words.join(', ');
+      bank.disabled = false;
+      el('resetWords').disabled = false;
+    }
   }
 
   function startGame() {
@@ -374,11 +434,21 @@
     }
     players = n;
 
-    const chosen = categoryId === RANDOM_ID ? pick(CATEGORIES)
-      : CATEGORIES.find((c) => c.id === categoryId);
+    if (categoryId === RANDOM_ID) {
+      const chosen = pick(CATEGORIES);
+      roundCategory = chosen.name;
+      secretWord = pick(chosen.words);
+    } else {
+      const chosen = CATEGORIES.find((c) => c.id === categoryId);
+      const pool = parseWords(el('wordBank').value);
+      if (pool.length < 1) {
+        alert('Add at least one word.');
+        return;
+      }
+      roundCategory = chosen.name;
+      secretWord = pick(pool);
+    }
 
-    roundCategory = chosen.name;
-    secretWord = pick(chosen.words);
     imposterAt = Math.floor(Math.random() * players);
     current = 0;
 
@@ -441,6 +511,8 @@
   }
 
   buildCategoryButtons();
+  syncWordBank();
+  el('resetWords').addEventListener('click', syncWordBank);
   el('startBtn').addEventListener('click', startGame);
   el('revealBtn').addEventListener('click', toggleReveal);
   el('nextBtn').addEventListener('click', nextPlayer);
