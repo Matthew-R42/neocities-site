@@ -156,6 +156,51 @@ a { color: inherit; }
   flex: 0 0 auto;
 }
 
+/* ---------- folders ---------- */
+.folder {
+  margin: 20px 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.folder + .folder { margin-top: 16px; }
+
+.folder-summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  list-style: none;
+  cursor: pointer;
+  padding: 16px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  user-select: none;
+}
+
+.folder-summary::-webkit-details-marker { display: none; }
+
+.folder-summary:hover { color: var(--fg); }
+
+.folder-chev {
+  margin-left: auto;
+  color: var(--dim);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  transition: transform 0.16s ease;
+}
+
+.folder[open] .folder-chev { transform: rotate(90deg); }
+
+.folder > .grid {
+  padding: 0 20px 20px;
+}
+
 /* ---------- card grid ---------- */
 .grid {
   display: grid;
