@@ -286,8 +286,18 @@ footer a:hover { color: var(--fg); }
   .sw-desc { flex-basis: 100%; padding-left: 56px; }
 }
 
-/* ---------- theme picker (site-wide, injected by theme.js) ---------- */
-.site-theme-btn {
+/* ---------- settings panel (site-wide, injected by settings.js) ---------- */
+
+/* Brightness/contrast/warmth wash. Sits above everything and takes no clicks,
+   so the whole page is filtered including the settings panel itself. */
+.site-set-filter {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+}
+
+.site-set-btn {
   position: fixed;
   right: 20px;
   bottom: 20px;
@@ -303,28 +313,45 @@ footer a:hover { color: var(--fg); }
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
-.site-theme-btn:hover { border-color: var(--line-hover); }
+.site-set-btn:hover { border-color: var(--line-hover); }
 
-.site-theme-panel {
+.site-set-panel {
   position: fixed;
   right: 20px;
   bottom: 76px;
   z-index: 30;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-  gap: 8px;
   width: min(380px, 82vw);
-  max-height: 60vh;
+  max-height: 70vh;
   overflow-y: auto;
-  padding: 12px;
+  padding: 14px;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
 }
-.site-theme-panel.hidden { display: none; }
+.site-set-panel.hidden { display: none; }
 
-.site-theme-swatch {
+.site-set-section { margin-bottom: 16px; }
+.site-set-section:last-of-type { margin-bottom: 12px; }
+
+.site-set-h {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 7px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.site-set-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+}
+
+.site-set-swatch {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -336,10 +363,10 @@ footer a:hover { color: var(--fg); }
   cursor: pointer;
   font: inherit;
 }
-.site-theme-swatch:hover { border-color: var(--line-hover); }
-.site-theme-swatch.active { border-color: var(--muted); }
+.site-set-swatch:hover { border-color: var(--line-hover); }
+.site-set-swatch.active { border-color: var(--muted); }
 
-.site-theme-preview {
+.site-set-preview {
   width: 100%;
   height: 26px;
   border-radius: 6px;
@@ -347,16 +374,109 @@ footer a:hover { color: var(--fg); }
   overflow: hidden;
   border: 1px solid var(--line);
 }
-.site-theme-preview span { flex: 1; }
+.site-set-preview span { flex: 1; }
 
-.site-theme-name { font-size: 10.5px; color: var(--muted); text-align: center; line-height: 1.2; }
+.site-set-name { font-size: 10.5px; color: var(--muted); text-align: center; line-height: 1.2; }
+
+/* ---------- sliders ---------- */
+.site-set-row { margin-bottom: 13px; }
+.site-set-row:last-child { margin-bottom: 0; }
+
+.site-set-rowhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.site-set-label { font-size: 13px; color: var(--fg); }
+
+.site-set-val {
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.site-set-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+  cursor: pointer;
+}
+.site-set-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--fg);
+  border: none;
+  cursor: pointer;
+}
+.site-set-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--fg);
+  border: none;
+  cursor: pointer;
+}
+.site-set-slider:focus-visible { outline: 2px solid var(--muted); outline-offset: 4px; }
+
+/* ---------- toggle ---------- */
+.site-set-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  color: var(--fg);
+  cursor: pointer;
+}
+.site-set-toggle input { accent-color: var(--muted); width: 15px; height: 15px; cursor: pointer; }
+
+.site-set-reset {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.site-set-reset:hover { border-color: var(--line-hover); color: var(--fg); }
+
+/* Honour both the OS preference and the in-panel toggle. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html[data-reduce-motion] *,
+html[data-reduce-motion] *::before,
+html[data-reduce-motion] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
 
 /* On phones the floating button sits on top of whatever is at the bottom of the
    screen, and on the game pages that means real controls (the Sudoku number pad,
    the Minesweeper board). Drop it into normal flow below the footer instead, so
    it can never swallow a tap. */
 @media (max-width: 520px) {
-  .site-theme-btn {
+  .site-set-btn {
     position: static;
     display: block;
     width: fit-content;
@@ -364,7 +484,7 @@ footer a:hover { color: var(--fg); }
     box-shadow: none;
   }
 
-  .site-theme-panel {
+  .site-set-panel {
     position: static;
     width: auto;
     max-width: none;
