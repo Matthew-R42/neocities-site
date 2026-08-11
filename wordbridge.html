@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wordbridge</title>
-<meta name="description" content="Wordbridge. Connect two unrelated words with a chain of words that bridge their meaning. One pair a day, plus practice mode.">
+<meta name="description" content="Wordbridge. Connect two unrelated words by adding words that link them. Watch the bridge form as a graph. One pair a day, plus practice mode.">
 <meta property="og:title" content="Wordbridge">
-<meta property="og:description" content="Wordbridge. Connect two unrelated words with a chain of words that bridge their meaning. One pair a day, plus practice mode.">
+<meta property="og:description" content="Wordbridge. Connect two unrelated words by adding words that link them. Watch the bridge form as a graph. One pair a day, plus practice mode.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mtw4244.work/wordbridge">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23111%22/><text x=%2250%22 y=%2270%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22700%22 font-size=%2262%22 fill=%22%23fff%22 text-anchor=%22middle%22>M</text></svg>">
 <link rel="stylesheet" href="style.css">
 <script src="theme.js" defer></script>
 <style>
-  .wb-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  .wb-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
 
   .wb-select {
     font: inherit;
@@ -26,6 +26,8 @@
     padding: 8px 14px;
   }
 
+  .wb-board { max-width: 620px; }
+
   .wb-hud {
     display: flex;
     align-items: center;
@@ -36,51 +38,68 @@
     background: var(--card);
     padding: 14px 20px;
     margin-bottom: 16px;
-    max-width: 486px;
   }
 
-  .wb-stat { display: flex; flex-direction: column; align-items: center; min-width: 64px; }
+  .wb-stat { display: flex; flex-direction: column; align-items: center; min-width: 58px; }
   .wb-stat .wb-lbl { color: var(--muted); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 650; }
   .wb-stat .wb-val { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
 
-  .wb-chain {
-    max-width: 486px;
+  .wb-goal {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
     align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 17px;
+    font-weight: 650;
+    flex-wrap: wrap;
+  }
+  .wb-goal .wb-end {
+    border: 1px solid var(--fg);
+    border-radius: 999px;
+    padding: 6px 16px;
+    background: var(--bg);
+  }
+  .wb-goal .wb-gap { color: var(--muted); font-weight: 400; font-size: 14px; }
+
+  .wb-canvas-wrap {
+    position: relative;
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: var(--card);
-    padding: 16px;
-    min-height: 60px;
+    overflow: hidden;
+    height: 470px;
+    touch-action: none;
   }
+  .wb-canvas-wrap canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+  .wb-canvas-wrap canvas.dragging { cursor: grabbing; }
 
-  .wb-pill {
-    font-weight: 650;
-    font-size: 14px;
-    padding: 7px 14px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: var(--bg);
-    color: var(--fg);
+  .wb-canvas-hint {
+    position: absolute;
+    left: 12px;
+    bottom: 10px;
+    font-size: 11.5px;
+    color: var(--muted);
+    pointer-events: none;
+    opacity: 0.75;
   }
-  .wb-pill.endpoint { border-color: var(--fg); }
-  .wb-pill.link { display: flex; align-items: center; gap: 6px; }
-  .wb-pill.link button {
+  .wb-fitbtn {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
     font: inherit;
     font-size: 12px;
-    background: none;
-    border: none;
+    font-weight: 600;
     color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 12px;
     cursor: pointer;
-    padding: 0;
-    line-height: 1;
   }
-  .wb-pill.link button:hover { color: var(--fg); }
-  .wb-arrow { color: var(--muted); }
+  .wb-fitbtn:hover { color: var(--fg); border-color: var(--line-hover); }
 
-  .wb-input-row { max-width: 486px; display: flex; gap: 8px; margin-top: 12px; }
+  .wb-input-row { display: flex; gap: 8px; margin-top: 12px; position: relative; }
   .wb-input {
     flex: 1;
     font: inherit;
@@ -93,7 +112,30 @@
   }
   .wb-input:focus { outline: none; border-color: var(--fg); }
 
-  .wb-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; max-width: 486px; }
+  .wb-suggest {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 6px);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 5px;
+    display: none;
+    z-index: 20;
+    max-height: 210px;
+    overflow-y: auto;
+  }
+  .wb-suggest.open { display: block; }
+  .wb-suggest div {
+    padding: 7px 12px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 14.5px;
+  }
+  .wb-suggest div.active, .wb-suggest div:hover { background: var(--bg); }
+
+  .wb-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 
   .wb-tbtn {
     font: inherit;
@@ -109,15 +151,17 @@
   .wb-tbtn:hover { border-color: var(--line-hover); }
   .wb-tbtn:disabled { opacity: 0.4; cursor: default; }
 
-  .wb-msg { margin-top: 16px; color: var(--muted); font-size: 14.5px; min-height: 1.4em; max-width: 486px; }
+  .wb-msg { margin-top: 14px; color: var(--muted); font-size: 14.5px; min-height: 1.4em; }
   .wb-msg.win { color: var(--fg); font-weight: 650; }
 
-  .wb-credit { margin-top: 28px; font-size: 13px; color: var(--muted); max-width: 486px; }
+  .wb-credit { margin-top: 28px; font-size: 13px; color: var(--muted); max-width: 620px; }
   .wb-credit a { color: var(--muted); }
   .wb-credit a:hover { color: var(--fg); }
 
   @media (max-width: 520px) {
-    .wb-hud { padding: 12px 16px; }
+    .wb-hud { padding: 12px 14px; }
+    .wb-stat { min-width: 48px; }
+    .wb-canvas-wrap { height: 390px; }
   }
 </style>
 </head>
@@ -131,7 +175,7 @@
   </header>
 
   <h1 class="page-title">Wordbridge</h1>
-  <p class="page-lede">Two words, one meaning-gap. Add words one at a time until each step feels like a small, obvious hop from the last. Shorter chains score better. One pair a day, unlimited practice underneath.</p>
+  <p class="page-lede">Two words with nothing in common. Add words that sit between them, and each one joins the map wherever it already means something similar. Bridge the gap in as few words as you can. One pair a day, unlimited practice underneath.</p>
 
   <div class="wb-controls">
     <select class="wb-select" id="mode">
@@ -141,82 +185,109 @@
     <button class="btn" id="new-pair" style="padding:8px 16px; display:none;">New pair</button>
   </div>
 
-  <div class="wb-hud">
-    <div class="wb-stat"><span class="wb-lbl">Streak</span><span class="wb-val" id="streak">0</span></div>
-    <div class="wb-stat"><span class="wb-lbl">Best</span><span class="wb-val" id="best">—</span></div>
-    <div class="wb-stat"><span class="wb-lbl">Played</span><span class="wb-val" id="played">0</span></div>
+  <div class="wb-board">
+
+    <div class="wb-hud">
+      <div class="wb-stat"><span class="wb-lbl">Words</span><span class="wb-val" id="used">0</span></div>
+      <div class="wb-stat"><span class="wb-lbl">Streak</span><span class="wb-val" id="streak">0</span></div>
+      <div class="wb-stat"><span class="wb-lbl">Best</span><span class="wb-val" id="best">—</span></div>
+      <div class="wb-stat"><span class="wb-lbl">Played</span><span class="wb-val" id="played">0</span></div>
+    </div>
+
+    <div class="wb-goal">
+      <span class="wb-end" id="goal-start">—</span>
+      <span class="wb-gap">bridge the gap</span>
+      <span class="wb-end" id="goal-target">—</span>
+    </div>
+
+    <div class="wb-canvas-wrap">
+      <canvas id="graph"></canvas>
+      <span class="wb-canvas-hint">drag to pan · scroll to zoom · drag a bubble to move it</span>
+      <button class="wb-fitbtn" id="fit-btn" type="button">Recentre</button>
+    </div>
+
+    <div class="wb-input-row">
+      <div class="wb-suggest" id="suggest"></div>
+      <input class="wb-input" id="word-input" type="text" placeholder="Add a word…" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="20">
+      <button class="btn" id="add-word" style="padding:10px 18px;">Add</button>
+    </div>
+
+    <div class="wb-tools">
+      <button class="wb-tbtn" id="undo-btn" type="button">Undo last</button>
+      <button class="wb-tbtn" id="giveup-btn" type="button">Give up</button>
+      <button class="wb-tbtn" id="share-btn" type="button">Copy result</button>
+    </div>
+
+    <div class="wb-msg" id="msg"></div>
+
   </div>
 
-  <div class="wb-chain" id="chain"></div>
-
-  <div class="wb-input-row">
-    <input class="wb-input" id="word-input" type="text" placeholder="Next word…" autocomplete="off" maxlength="24">
-    <button class="btn" id="add-word" style="padding:10px 18px;">Add</button>
-  </div>
-
-  <div class="wb-tools">
-    <button class="wb-tbtn" id="undo-btn" type="button">Undo last</button>
-    <button class="wb-tbtn" id="finish-btn" type="button">Finish chain</button>
-    <button class="wb-tbtn" id="share-btn" type="button">Copy result</button>
-  </div>
-
-  <div class="wb-msg" id="msg"></div>
-
-  <p class="wb-credit">A fan-made game in the spirit of <a href="https://linxicon.com/" target="_blank" rel="noopener">Linxicon</a>, rebuilt from scratch with permission from its creator. Not affiliated with the original site.</p>
+  <p class="wb-credit">A fan-made game in the spirit of <a href="https://linxicon.com/" target="_blank" rel="noopener">Linxicon</a>, rebuilt from scratch with permission from its creator. Not affiliated with the original site. Word relatedness comes from the <a href="https://www.datamuse.com/api/" target="_blank" rel="noopener">Datamuse API</a>, baked into a static file so the game runs entirely in your browser.</p>
 
   <footer>
-    <span>Type a word and press Enter · Finish once your chain reaches the target</span>
+    <span>Type a word and press Enter · the bridge completes itself when the two ends connect</span>
     <span class="sep">·</span>
     <a href="/">Back</a>
   </footer>
 
 </div>
 
+<script src="wordbridge-graph.js"></script>
 <script>
-const STORAGE_PREFIX = 'wordbridge:';
+const STORAGE_PREFIX = 'wordbridge:v2:';
 const EPOCH = new Date(2026, 7, 11); // pair #1
+const WORD_BUDGET = 30;
 
-// Curated pairs for the start/target endpoints. Deliberately everyday nouns
-// and concepts with an obvious semantic gap to bridge.
-const WORD_BANK = [
-  'ocean','ladder','thunder','pillow','compass','glacier','harvest','mirror','ember','anchor',
-  'kite','tunnel','feather','engine','orchard','lantern','current','marble','desert','violin',
-  'bridge','shadow','clock','forest','island','rocket','candle','river','castle','needle',
-  'volcano','whistle','garden','anchor','beacon','tide','circuit','meadow','stone','spark',
-  'nest','harbor','prairie','glass','frost','ribbon','canyon','signal','drum','vine',
-  'satellite','coral','ash','lattice','wharf','summit','echo','quarry','moss','tide',
-  'origami','avalanche','cascade','lighthouse','pendulum','plateau','reef','silo','thicket','wren',
-];
+/* ---------- graph data ---------- */
 
-function pickPair(rng) {
-  const bank = WORD_BANK;
-  const i = Math.floor(rng() * bank.length);
-  let j = Math.floor(rng() * bank.length);
-  while (j === i) j = Math.floor(rng() * bank.length);
-  return [bank[i], bank[j]];
-}
+const GRAPH = window.WORDBRIDGE_GRAPH || { words: [], edges: [], pairs: [] };
+const WORDS = GRAPH.words;
+const WORD_INDEX = new Map(WORDS.map((w, i) => [w, i]));
+
+// adjacency: vocab index -> [{ to, score }], strongest first
+const ADJ = new Map();
+(function buildAdjacency() {
+  const e = GRAPH.edges;
+  for (let i = 0; i < e.length; i += 3) {
+    const a = e[i], b = e[i + 1], score = e[i + 2] / 1000;
+    if (!ADJ.has(a)) ADJ.set(a, []);
+    if (!ADJ.has(b)) ADJ.set(b, []);
+    ADJ.get(a).push({ to: b, score });
+    ADJ.get(b).push({ to: a, score });
+  }
+  for (const list of ADJ.values()) list.sort((x, y) => y.score - x.score);
+})();
+
+/* ---------- elements ---------- */
 
 const modeSel = document.getElementById('mode');
 const newPairBtn = document.getElementById('new-pair');
+const usedEl = document.getElementById('used');
 const streakEl = document.getElementById('streak');
 const bestEl = document.getElementById('best');
 const playedEl = document.getElementById('played');
 const dayNumInline = document.getElementById('day-num-inline');
-const chainEl = document.getElementById('chain');
+const goalStartEl = document.getElementById('goal-start');
+const goalTargetEl = document.getElementById('goal-target');
+const canvas = document.getElementById('graph');
+const fitBtn = document.getElementById('fit-btn');
 const inputEl = document.getElementById('word-input');
+const suggestEl = document.getElementById('suggest');
 const addBtn = document.getElementById('add-word');
 const undoBtn = document.getElementById('undo-btn');
-const finishBtn = document.getElementById('finish-btn');
+const giveUpBtn = document.getElementById('giveup-btn');
 const shareBtn = document.getElementById('share-btn');
 const msgEl = document.getElementById('msg');
-const dayNumInline2 = dayNumInline;
+
+/* ---------- game state ---------- */
 
 let mode = 'daily';
-let start = '', target = '';
-let bridge = []; // intermediate words the player has added
+let startIdx = -1, targetIdx = -1;
+let added = [];            // vocab indices the player has added, in order
 let finished = false;
+let won = false;
 let locked = false;
-let lastLength = null;
+let result = null;         // { words, hops }
 
 /* ---------- seeded rng ---------- */
 
@@ -250,39 +321,445 @@ function dayNumber() {
   return Math.max(1, Math.round((a - EPOCH) / 86400000) + 1);
 }
 
-/* ---------- rendering ---------- */
+/* ---------- force-directed bubble graph ----------
+   A small vanilla implementation of the repulsion solver vis-network uses:
+   pairwise repulsion with a hard cutoff, springs along edges, a pull toward
+   the centre, and a velocity clamp. The cutoff is what keeps the cloud
+   compact instead of drifting apart, and the centre pull is what rounds it
+   into a bubble. Everything is in world units; the camera maps to screen. */
 
-function render() {
-  chainEl.innerHTML = '';
-  const words = [start, ...bridge, ...(finished ? [target] : [])];
-  words.forEach((w, i) => {
-    if (i > 0) {
-      const arrow = document.createElement('span');
-      arrow.className = 'wb-arrow';
-      arrow.textContent = '→';
-      chainEl.appendChild(arrow);
+const PHYS = {
+  nodeDistance: 190,
+  springLength: 150,
+  springConstant: 0.05,
+  centralGravity: 0.8,
+  damping: 0.35,
+  maxVelocity: 24,
+  repulsion: 260,
+  timestep: 0.42,
+};
+
+const ctx = canvas.getContext('2d');
+let nodes = [];   // { idx, word, x, y, vx, vy, role, grow, w, h, pinned }
+let links = [];   // { a, b, score } indices into nodes
+let nodeOf = new Map(); // vocab index -> node
+let pathSet = new Set();   // node indices on the winning path
+let pathEdges = new Set(); // "a-b" keys on the winning path
+let selected = null;
+let cam = { x: 0, y: 0, scale: 1, tx: 0, ty: 0, tscale: 1 };
+let theme = readTheme();
+let cssW = 1, cssH = 1;
+
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  const get = (n, fb) => (cs.getPropertyValue(n) || fb).trim();
+  return {
+    fg: get('--fg', '#f2f2f2'),
+    muted: get('--muted', '#8b8b8b'),
+    line: get('--line', '#1e1e1e'),
+    lineHover: get('--line-hover', '#3a3a3a'),
+    card: get('--card', '#0a0a0a'),
+    bg: get('--bg', '#000'),
+  };
+}
+new MutationObserver(() => { theme = readTheme(); }).observe(
+  document.documentElement, { attributes: true, attributeFilter: ['style', 'class'] }
+);
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  const dpr = window.devicePixelRatio || 1;
+  cssW = rect.width;
+  cssH = rect.height;
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+new ResizeObserver(resizeCanvas).observe(canvas);
+
+const FONT_PX = 14;
+function fontString(px) {
+  return `650 ${px}px ${getComputedStyle(document.body).fontFamily || 'system-ui, sans-serif'}`;
+}
+
+function measure(node) {
+  ctx.font = fontString(FONT_PX);
+  const w = ctx.measureText(node.word).width;
+  // An ellipse needs to be wider than its inscribed text box, hence the 1.35.
+  node.w = Math.max(46, w * 1.35 + 18);
+  node.h = 34;
+}
+
+function addNode(vocabIdx, role) {
+  const node = {
+    idx: vocabIdx,
+    word: WORDS[vocabIdx],
+    x: 0, y: 0, vx: 0, vy: 0,
+    role: role,
+    grow: role === 'added' ? 0 : 1,
+    w: 60, h: 34,
+    pinned: false,
+  };
+  measure(node);
+
+  // Drop a new word next to whichever word on the board it is closest to in
+  // meaning, so it visibly lands where it belongs instead of flying in.
+  let anchor = null;
+  const neighbours = ADJ.get(vocabIdx) || [];
+  for (const nb of neighbours) {
+    const existing = nodeOf.get(nb.to);
+    if (existing) { anchor = existing; break; }
+  }
+  const angle = Math.random() * Math.PI * 2;
+  const radius = anchor ? PHYS.springLength : 120 + Math.random() * 60;
+  node.x = (anchor ? anchor.x : 0) + Math.cos(angle) * radius;
+  node.y = (anchor ? anchor.y : 0) + Math.sin(angle) * radius;
+
+  const at = nodes.length;
+  nodes.push(node);
+  nodeOf.set(vocabIdx, node);
+
+  // Connect to everything already on the board that it is related to.
+  for (const nb of neighbours) {
+    const other = nodeOf.get(nb.to);
+    if (!other || other === node) continue;
+    links.push({ a: at, b: nodes.indexOf(other), score: nb.score });
+  }
+  return node;
+}
+
+const SEPARATION_PAD = 14;
+
+function separate(passes) {
+  const n = nodes.length;
+  for (let pass = 0; pass < passes; pass++) {
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const A = nodes[i], B = nodes[j];
+        const rx = (A.w + B.w) / 2 + SEPARATION_PAD;
+        const ry = (A.h + B.h) / 2 + SEPARATION_PAD;
+        let dx = B.x - A.x, dy = B.y - A.y;
+        if (dx === 0 && dy === 0) { dx = 0.6; dy = 0.4; }
+        const nx = dx / rx, ny = dy / ry;
+        const d = Math.hypot(nx, ny);
+        if (d >= 1 || d < 1e-6) continue;
+        const corr = ((1 - d) / d) * 0.5;
+        const cx = nx * rx * corr, cy = ny * ry * corr;
+        if (!A.pinned) { A.x -= cx; A.y -= cy; }
+        if (!B.pinned) { B.x += cx; B.y += cy; }
+      }
     }
-    const pill = document.createElement('span');
-    const isEndpoint = i === 0 || (finished && i === words.length - 1);
-    pill.className = 'wb-pill' + (isEndpoint ? ' endpoint' : '');
-    pill.textContent = w;
-    chainEl.appendChild(pill);
-  });
-  if (!finished) {
-    const arrow = document.createElement('span');
-    arrow.className = 'wb-arrow';
-    arrow.textContent = '→ … →';
-    chainEl.appendChild(arrow);
-    const pill = document.createElement('span');
-    pill.className = 'wb-pill endpoint';
-    pill.textContent = target;
-    chainEl.appendChild(pill);
+  }
+}
+
+function stepPhysics(dt) {
+  const n = nodes.length;
+  if (!n) return 0;
+
+  const fx = new Float64Array(n);
+  const fy = new Float64Array(n);
+
+  // Repulsion, linear falloff to zero at 2x nodeDistance (vis-network's curve).
+  const nd = PHYS.nodeDistance;
+  const ra = -2 / 3 / nd, rb = 4 / 3;
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      let dx = nodes[j].x - nodes[i].x;
+      let dy = nodes[j].y - nodes[i].y;
+      let d2 = dx * dx + dy * dy;
+      if (d2 < 0.01) { dx = (Math.random() - 0.5) * 0.5; dy = (Math.random() - 0.5) * 0.5; d2 = dx * dx + dy * dy + 0.01; }
+      const d = Math.sqrt(d2);
+      if (d >= 2 * nd) continue;
+      let strength = d < 0.5 * nd ? 1 : ra * d + rb;
+      const f = (PHYS.repulsion * strength) / d;
+      const ux = dx / d, uy = dy / d;
+      fx[i] -= ux * f; fy[i] -= uy * f;
+      fx[j] += ux * f; fy[j] += uy * f;
+    }
   }
 
-  undoBtn.disabled = bridge.length === 0 || finished;
-  finishBtn.disabled = bridge.length === 0 || finished || locked;
-  inputEl.disabled = finished || locked;
-  addBtn.disabled = finished || locked;
+  // Springs. A stronger semantic link pulls the two words closer together.
+  for (const l of links) {
+    const A = nodes[l.a], B = nodes[l.b];
+    let dx = B.x - A.x, dy = B.y - A.y;
+    const d = Math.max(0.01, Math.hypot(dx, dy));
+    const rest = PHYS.springLength * (1.25 - 0.45 * l.score);
+    const f = PHYS.springConstant * (d - rest);
+    const ux = dx / d, uy = dy / d;
+    fx[l.a] += ux * f; fy[l.a] += uy * f;
+    fx[l.b] -= ux * f; fy[l.b] -= uy * f;
+  }
+
+  // Central gravity: constant pull toward the origin, which is what makes the
+  // whole cloud settle into a rough circle rather than a sprawl.
+  for (let i = 0; i < n; i++) {
+    const d = Math.hypot(nodes[i].x, nodes[i].y);
+    if (d > 0.01) {
+      fx[i] -= (nodes[i].x / d) * PHYS.centralGravity * d * 0.06;
+      fy[i] -= (nodes[i].y / d) * PHYS.centralGravity * d * 0.06;
+    }
+  }
+
+  // Forces alone let bubbles overlap once the graph gets dense, and overlapping
+  // words are unreadable. Separate them positionally instead: measure the
+  // overlap in the ellipse's own coordinates and push each node out half of it.
+  separate(2);
+
+  let energy = 0;
+  for (let i = 0; i < n; i++) {
+    const node = nodes[i];
+    if (node.pinned) { node.vx = 0; node.vy = 0; continue; }
+    const mass = 1 + node.w / 140;
+    node.vx += ((fx[i] - PHYS.damping * node.vx * 12) / mass) * dt;
+    node.vy += ((fy[i] - PHYS.damping * node.vy * 12) / mass) * dt;
+    const speed = Math.hypot(node.vx, node.vy);
+    if (speed > PHYS.maxVelocity) {
+      node.vx = (node.vx / speed) * PHYS.maxVelocity;
+      node.vy = (node.vy / speed) * PHYS.maxVelocity;
+    }
+    node.x += node.vx * dt;
+    node.y += node.vy * dt;
+    energy += speed * speed;
+  }
+  return energy / n;
+}
+
+function stabilise(iterations) {
+  for (let i = 0; i < iterations; i++) stepPhysics(PHYS.timestep);
+}
+
+function fitView(immediate) {
+  if (!nodes.length) return;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const n of nodes) {
+    minX = Math.min(minX, n.x - n.w / 2); maxX = Math.max(maxX, n.x + n.w / 2);
+    minY = Math.min(minY, n.y - n.h / 2); maxY = Math.max(maxY, n.y + n.h / 2);
+  }
+  const pad = 26;
+  // The floor keeps labels above ~7px; past that the player pans instead of
+  // squinting at a graph shrunk to fit.
+  const scale = Math.max(0.5, Math.min(1.25,
+    Math.min(cssW / (maxX - minX + pad * 2), cssH / (maxY - minY + pad * 2))));
+  cam.tx = (minX + maxX) / 2;
+  cam.ty = (minY + maxY) / 2;
+  cam.tscale = scale;
+  if (immediate) { cam.x = cam.tx; cam.y = cam.ty; cam.scale = cam.tscale; }
+}
+
+function toScreen(x, y) {
+  return [(x - cam.x) * cam.scale + cssW / 2, (y - cam.y) * cam.scale + cssH / 2];
+}
+function toWorld(sx, sy) {
+  return [(sx - cssW / 2) / cam.scale + cam.x, (sy - cssH / 2) / cam.scale + cam.y];
+}
+
+function nodeAt(sx, sy) {
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    const n = nodes[i];
+    const [px, py] = toScreen(n.x, n.y);
+    const rx = (n.w / 2) * cam.scale, ry = (n.h / 2) * cam.scale;
+    const dx = (sx - px) / rx, dy = (sy - py) / ry;
+    if (dx * dx + dy * dy <= 1) return n;
+  }
+  return null;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, cssW, cssH);
+  if (!nodes.length) return;
+
+  // Edges first so bubbles sit on top of them.
+  for (const l of links) {
+    const A = nodes[l.a], B = nodes[l.b];
+    const key = l.a < l.b ? l.a + '-' + l.b : l.b + '-' + l.a;
+    const onPath = pathEdges.has(key);
+    const [ax, ay] = toScreen(A.x, A.y);
+    const [bx, by] = toScreen(B.x, B.y);
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(bx, by);
+    ctx.strokeStyle = onPath ? theme.muted : theme.lineHover;
+    ctx.lineWidth = onPath ? 2.5 : 1 + l.score * 1.2;
+    ctx.globalAlpha = onPath ? 1 : 0.55;
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  for (const n of nodes) {
+    const [px, py] = toScreen(n.x, n.y);
+    const g = n.grow;
+    const rx = (n.w / 2) * cam.scale * g;
+    const ry = (n.h / 2) * cam.scale * g;
+    if (rx < 0.5 || ry < 0.5) continue;
+    if (px < -rx * 2 || px > cssW + rx * 2 || py < -ry * 2 || py > cssH + ry * 2) continue;
+
+    const isEnd = n.role !== 'added';
+    const onPath = pathSet.has(n);
+
+    ctx.beginPath();
+    ctx.ellipse(px, py, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fillStyle = isEnd ? theme.bg : theme.card;
+    ctx.fill();
+    ctx.strokeStyle = isEnd ? theme.fg : (onPath ? theme.muted : theme.lineHover);
+    ctx.lineWidth = isEnd ? 2.2 : (onPath ? 2.2 : 1.4);
+    ctx.stroke();
+
+    if (selected === n) {
+      ctx.beginPath();
+      ctx.ellipse(px, py, rx + 4, ry + 4, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = theme.muted;
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.7;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // The label has to track the camera exactly as the ellipse does, or the
+    // text outgrows its bubble as soon as the view zooms out to fit.
+    const px2 = FONT_PX * cam.scale * Math.min(1, g);
+    if (px2 < 6) continue;
+    ctx.font = fontString(px2);
+    ctx.fillStyle = isEnd ? theme.fg : (onPath ? theme.fg : theme.muted);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(n.word, px, py + 0.5);
+  }
+}
+
+let lastFrame = 0;
+function loop(ts) {
+  const dtMs = Math.min(48, ts - lastFrame || 16);
+  lastFrame = ts;
+
+  const steps = 2;
+  for (let i = 0; i < steps; i++) stepPhysics(PHYS.timestep);
+
+  for (const n of nodes) if (n.grow < 1) n.grow = Math.min(1, n.grow + dtMs / 260);
+
+  // Ease the camera rather than snapping, so recentring reads as a movement.
+  cam.x += (cam.tx - cam.x) * 0.08;
+  cam.y += (cam.ty - cam.y) * 0.08;
+  cam.scale += (cam.tscale - cam.scale) * 0.08;
+
+  draw();
+  requestAnimationFrame(loop);
+}
+
+/* ---------- pointer interaction ---------- */
+
+let drag = null;
+canvas.addEventListener('pointerdown', (e) => {
+  canvas.setPointerCapture(e.pointerId);
+  const rect = canvas.getBoundingClientRect();
+  const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+  const hit = nodeAt(sx, sy);
+  drag = { sx, sy, node: hit, moved: false, camX: cam.tx, camY: cam.ty };
+  if (hit) hit.pinned = true;
+  canvas.classList.add('dragging');
+});
+
+canvas.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  const rect = canvas.getBoundingClientRect();
+  const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+  if (Math.abs(sx - drag.sx) + Math.abs(sy - drag.sy) > 3) drag.moved = true;
+  if (drag.node) {
+    const [wx, wy] = toWorld(sx, sy);
+    drag.node.x = wx; drag.node.y = wy;
+    drag.node.vx = 0; drag.node.vy = 0;
+  } else {
+    cam.tx = drag.camX - (sx - drag.sx) / cam.scale;
+    cam.ty = drag.camY - (sy - drag.sy) / cam.scale;
+    cam.x = cam.tx; cam.y = cam.ty;
+  }
+});
+
+function endDrag() {
+  if (!drag) return;
+  if (drag.node) drag.node.pinned = false;
+  if (!drag.moved) {
+    selected = drag.node;
+    describeSelection();
+  }
+  drag = null;
+  canvas.classList.remove('dragging');
+}
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+  const [wx, wy] = toWorld(sx, sy);
+  const factor = Math.exp(-e.deltaY * 0.0016);
+  const next = Math.max(0.25, Math.min(2.2, cam.scale * factor));
+  // Keep the point under the cursor fixed while zooming.
+  cam.x = wx - (sx - cssW / 2) / next;
+  cam.y = wy - (sy - cssH / 2) / next;
+  cam.scale = next;
+  cam.tx = cam.x; cam.ty = cam.y; cam.tscale = next;
+}, { passive: false });
+
+canvas.addEventListener('dblclick', () => fitView(false));
+fitBtn.addEventListener('click', () => fitView(false));
+
+function describeSelection() {
+  if (finished) return;
+  if (!selected) { msgEl.textContent = ''; msgEl.className = 'wb-msg'; return; }
+  const live = (ADJ.get(selected.idx) || []).filter((nb) => nodeOf.has(nb.to));
+  msgEl.className = 'wb-msg';
+  msgEl.textContent = live.length
+    ? `${selected.word} connects to ${live.map((nb) => WORDS[nb.to]).join(', ')}.`
+    : `${selected.word} has no connections on the board yet.`;
+}
+
+/* ---------- path finding ---------- */
+
+function neighboursOnBoard(nodeIndex) {
+  const out = [];
+  for (const l of links) {
+    if (l.a === nodeIndex) out.push(l.b);
+    else if (l.b === nodeIndex) out.push(l.a);
+  }
+  return out;
+}
+
+function shortestPath(fromIdx, toIdx) {
+  if (fromIdx < 0 || toIdx < 0) return null;
+  const prev = new Map([[fromIdx, -1]]);
+  const queue = [fromIdx];
+  while (queue.length) {
+    const cur = queue.shift();
+    if (cur === toIdx) {
+      const path = [];
+      let at = cur;
+      while (at !== -1) { path.push(at); at = prev.get(at); }
+      return path.reverse();
+    }
+    for (const nb of neighboursOnBoard(cur)) {
+      if (!prev.has(nb)) { prev.set(nb, cur); queue.push(nb); }
+    }
+  }
+  return null;
+}
+
+function refreshPath() {
+  pathSet = new Set();
+  pathEdges = new Set();
+  const s = nodes.indexOf(nodeOf.get(startIdx));
+  const t = nodes.indexOf(nodeOf.get(targetIdx));
+  const path = shortestPath(s, t);
+  if (!path) return null;
+  for (let i = 0; i < path.length; i++) {
+    pathSet.add(nodes[path[i]]);
+    if (i > 0) {
+      const a = path[i - 1], b = path[i];
+      pathEdges.add(a < b ? a + '-' + b : b + '-' + a);
+    }
+  }
+  return path;
 }
 
 /* ---------- stats ---------- */
@@ -296,7 +773,7 @@ function loadStats() {
 }
 
 function saveStats(stats) {
-  localStorage.setItem(STORAGE_PREFIX + 'stats', JSON.stringify(stats));
+  try { localStorage.setItem(STORAGE_PREFIX + 'stats', JSON.stringify(stats)); } catch (e) { /* private mode */ }
 }
 
 function refreshHud() {
@@ -304,127 +781,283 @@ function refreshHud() {
   streakEl.textContent = stats.streak;
   bestEl.textContent = stats.best === null ? '—' : stats.best;
   playedEl.textContent = stats.played;
+  usedEl.textContent = added.length;
 }
 
 /* ---------- play ---------- */
 
-function addWord() {
+function setMessage(text, win) {
+  msgEl.textContent = text;
+  msgEl.className = win ? 'wb-msg win' : 'wb-msg';
+}
+
+function addWord(raw) {
   if (finished || locked) return;
-  const raw = inputEl.value.trim().toLowerCase();
-  if (!raw || !/^[a-z]+(?:[ '-][a-z]+)*$/.test(raw)) {
-    msgEl.textContent = 'Words only, letters and spaces.';
-    msgEl.className = 'wb-msg';
+  const word = (raw !== undefined ? raw : inputEl.value).trim().toLowerCase();
+  if (!word) return;
+  if (!WORD_INDEX.has(word)) {
+    setMessage(`"${word}" is not in the word list. Try the suggestions as you type.`, false);
     return;
   }
-  const last = bridge.length ? bridge[bridge.length - 1] : start;
-  if (raw === last) {
-    msgEl.textContent = "That's the same word as the last step.";
-    msgEl.className = 'wb-msg';
+  const vocabIdx = WORD_INDEX.get(word);
+  if (vocabIdx === startIdx || vocabIdx === targetIdx || nodeOf.has(vocabIdx)) {
+    setMessage(`${word} is already on the board.`, false);
     return;
   }
-  bridge.push(raw);
+
+  addNode(vocabIdx, 'added');
+  added.push(vocabIdx);
   inputEl.value = '';
-  msgEl.textContent = '';
-  msgEl.className = 'wb-msg';
+  closeSuggestions();
+  selected = null;
+
+  const connections = (ADJ.get(vocabIdx) || []).filter((nb) => nodeOf.has(nb.to)).length;
+  const path = refreshPath();
+  fitView(false);
+  refreshHud();
   render();
+
+  if (path) { finishGame(true, path.length - 1); return; }
+  if (added.length >= WORD_BUDGET) { finishGame(false, null); return; }
+
+  if (connections === 0) {
+    setMessage(`${word} added, but it does not connect to anything yet.`, false);
+  } else {
+    setMessage(`${word} added, linking to ${connections} word${connections === 1 ? '' : 's'}.`, false);
+  }
 }
 
 function undo() {
-  if (finished || locked || !bridge.length) return;
-  bridge.pop();
+  if (finished || locked || !added.length) return;
+  const vocabIdx = added.pop();
+  const node = nodeOf.get(vocabIdx);
+  const at = nodes.indexOf(node);
+  nodes.splice(at, 1);
+  nodeOf.delete(vocabIdx);
+  links = links
+    .filter((l) => l.a !== at && l.b !== at)
+    .map((l) => ({ a: l.a > at ? l.a - 1 : l.a, b: l.b > at ? l.b - 1 : l.b, score: l.score }));
+  selected = null;
+  refreshPath();
+  fitView(false);
+  refreshHud();
   render();
+  setMessage(`Removed ${WORDS[vocabIdx]}.`, false);
 }
 
-function finish() {
-  if (finished || locked || !bridge.length) return;
+function finishGame(didWin, hops) {
   finished = true;
-  lastLength = bridge.length;
+  won = didWin;
+  result = { words: added.length, hops: hops };
   render();
 
   if (mode !== 'daily') {
-    msgEl.textContent = `Bridged in ${lastLength} word${lastLength === 1 ? '' : 's'}. Nice work.`;
-    msgEl.className = 'wb-msg win';
+    setMessage(didWin
+      ? `Bridged in ${added.length} word${added.length === 1 ? '' : 's'}, a ${hops}-hop path. Try another pair.`
+      : `Out of words at ${WORD_BUDGET}. Start a new pair to try again.`, didWin);
     return;
   }
 
   const stats = loadStats();
   const today = todayStr();
-  const alreadyToday = stats.lastDay === today;
-  if (!alreadyToday) {
+  if (stats.lastDay !== today) {
     const wasYesterday = stats.lastDay && (new Date(today) - new Date(stats.lastDay)) === 86400000;
-    stats.streak = (wasYesterday ? stats.streak : 0) + 1;
-    stats.best = stats.best === null ? lastLength : Math.min(stats.best, lastLength);
+    if (didWin) {
+      stats.streak = (wasYesterday ? stats.streak : 0) + 1;
+      stats.best = stats.best === null ? added.length : Math.min(stats.best, added.length);
+    } else {
+      stats.streak = 0;
+    }
     stats.played += 1;
     stats.lastDay = today;
     saveStats(stats);
   }
-  localStorage.setItem(STORAGE_PREFIX + 'done:' + today, JSON.stringify({ bridge, length: lastLength }));
+  try {
+    localStorage.setItem(STORAGE_PREFIX + 'done:' + today,
+      JSON.stringify({ added: added, won: didWin, hops: hops }));
+  } catch (e) { /* private mode */ }
   locked = true;
   refreshHud();
-  msgEl.textContent = `Bridged ${start} to ${target} in ${lastLength} word${lastLength === 1 ? '' : 's'}. Come back tomorrow for the next pair.`;
-  msgEl.className = 'wb-msg win';
+  setMessage(didWin
+    ? `Bridged ${WORDS[startIdx]} to ${WORDS[targetIdx]} in ${added.length} word${added.length === 1 ? '' : 's'}, a ${hops}-hop path. Come back tomorrow.`
+    : `Out of words. Today's pair beat you. Come back tomorrow.`, didWin);
+}
+
+function giveUp() {
+  if (finished || locked || !added.length) {
+    if (!added.length) setMessage('Add at least one word first.', false);
+    return;
+  }
+  finishGame(false, null);
 }
 
 function shareResult() {
-  if (lastLength === null) return;
-  const text = mode === 'daily'
-    ? `Wordbridge #${dayNumber()} — ${start} → … → ${target} (${lastLength} step${lastLength === 1 ? '' : 's'})`
-    : `Wordbridge (practice) — ${start} → … → ${target} (${lastLength} step${lastLength === 1 ? '' : 's'})`;
+  if (!result) return;
+  const head = mode === 'daily' ? `Wordbridge #${dayNumber()}` : 'Wordbridge (practice)';
+  const body = won
+    ? `${WORDS[startIdx]} → ${WORDS[targetIdx]} in ${result.words} word${result.words === 1 ? '' : 's'} (${result.hops} hops)`
+    : `${WORDS[startIdx]} → ${WORDS[targetIdx]} — gave up`;
+  const text = `${head} — ${body}\nhttps://mtw4244.work/wordbridge`;
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => {
-      msgEl.textContent = 'Result copied.';
-      msgEl.className = msgEl.className.includes('win') ? 'wb-msg win' : 'wb-msg';
-    });
+    navigator.clipboard.writeText(text)
+      .then(() => setMessage('Result copied.', won))
+      .catch(() => setMessage('Could not copy to clipboard.', false));
   }
+}
+
+/* ---------- suggestions ---------- */
+
+let suggestions = [];
+let suggestActive = -1;
+
+function closeSuggestions() {
+  suggestions = [];
+  suggestActive = -1;
+  suggestEl.classList.remove('open');
+  suggestEl.innerHTML = '';
+}
+
+function updateSuggestions() {
+  const q = inputEl.value.trim().toLowerCase();
+  if (q.length < 2) { closeSuggestions(); return; }
+  suggestions = [];
+  for (const w of WORDS) {
+    if (w.startsWith(q) && !nodeOf.has(WORD_INDEX.get(w))) {
+      suggestions.push(w);
+      if (suggestions.length >= 8) break;
+    }
+  }
+  if (!suggestions.length) { closeSuggestions(); return; }
+  suggestActive = -1;
+  suggestEl.innerHTML = '';
+  suggestions.forEach((w, i) => {
+    const div = document.createElement('div');
+    div.textContent = w;
+    div.addEventListener('pointerdown', (e) => { e.preventDefault(); addWord(w); });
+    div.dataset.i = String(i);
+    suggestEl.appendChild(div);
+  });
+  suggestEl.classList.add('open');
+}
+
+function highlightSuggestion(delta) {
+  if (!suggestions.length) return;
+  suggestActive = (suggestActive + delta + suggestions.length) % suggestions.length;
+  Array.from(suggestEl.children).forEach((el, i) => {
+    el.classList.toggle('active', i === suggestActive);
+  });
+}
+
+/* ---------- rendering the controls ---------- */
+
+function render() {
+  goalStartEl.textContent = startIdx >= 0 ? WORDS[startIdx] : '—';
+  goalTargetEl.textContent = targetIdx >= 0 ? WORDS[targetIdx] : '—';
+  undoBtn.disabled = added.length === 0 || finished || locked;
+  giveUpBtn.disabled = finished || locked;
+  shareBtn.disabled = !result;
+  inputEl.disabled = finished || locked;
+  addBtn.disabled = finished || locked;
+  usedEl.textContent = added.length;
 }
 
 /* ---------- setup ---------- */
 
-function newGame() {
-  bridge = [];
-  finished = false;
-  lastLength = null;
-  msgEl.textContent = '';
-  msgEl.className = 'wb-msg';
-  inputEl.value = '';
+function pickPair(rng) {
+  const pairs = GRAPH.pairs;
+  if (!pairs || !pairs.length) return [0, Math.min(1, WORDS.length - 1)];
+  const p = pairs[Math.floor(rng() * pairs.length)];
+  return [p[0], p[1]];
+}
 
+function newGame() {
+  added = [];
+  finished = false;
+  won = false;
+  result = null;
+  selected = null;
+  nodes = [];
+  links = [];
+  nodeOf = new Map();
+  pathSet = new Set();
+  pathEdges = new Set();
+  setMessage('', false);
+  inputEl.value = '';
+  closeSuggestions();
+
+  let replay = null;
   if (mode === 'daily') {
     newPairBtn.style.display = 'none';
-    const rng = mulberry32(hashSeed('wordbridge-' + todayStr()));
-    [start, target] = pickPair(rng);
-    const saved = localStorage.getItem(STORAGE_PREFIX + 'done:' + todayStr());
-    if (saved) {
-      const r = JSON.parse(saved);
-      locked = true;
-      finished = true;
-      bridge = r.bridge;
-      lastLength = r.length;
-      msgEl.textContent = `Already played today: bridged in ${r.length} word${r.length === 1 ? '' : 's'}. Come back tomorrow.`;
-      msgEl.className = 'wb-msg win';
-    } else {
-      locked = false;
-    }
+    const rng = mulberry32(hashSeed('wordbridge-graph-' + todayStr()));
+    [startIdx, targetIdx] = pickPair(rng);
+    try {
+      const saved = localStorage.getItem(STORAGE_PREFIX + 'done:' + todayStr());
+      if (saved) replay = JSON.parse(saved);
+    } catch (e) { replay = null; }
+    locked = !!replay;
   } else {
     newPairBtn.style.display = '';
     locked = false;
     const rng = mulberry32((Math.random() * 4294967296) >>> 0);
-    [start, target] = pickPair(rng);
+    [startIdx, targetIdx] = pickPair(rng);
   }
 
-  render();
+  const a = addNode(startIdx, 'start');
+  const b = addNode(targetIdx, 'target');
+  a.x = -PHYS.springLength * 1.4; a.y = 0;
+  b.x = PHYS.springLength * 1.4; b.y = 0;
+
+  if (replay) {
+    for (const idx of replay.added) {
+      if (!nodeOf.has(idx)) { addNode(idx, 'added'); added.push(idx); }
+    }
+    for (const n of nodes) n.grow = 1;
+    finished = true;
+    won = !!replay.won;
+    result = { words: added.length, hops: replay.hops };
+    refreshPath();
+    setMessage(replay.won
+      ? `Already played today: bridged in ${added.length} word${added.length === 1 ? '' : 's'}, a ${replay.hops}-hop path.`
+      : `Already played today: you gave up on this pair.`, replay.won);
+  }
+
+  stabilise(260);
+  fitView(true);
   refreshHud();
+  render();
 }
 
-addBtn.addEventListener('click', addWord);
-inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addWord(); } });
+/* ---------- wiring ---------- */
+
+addBtn.addEventListener('click', () => addWord());
+inputEl.addEventListener('input', updateSuggestions);
+inputEl.addEventListener('blur', () => setTimeout(closeSuggestions, 120));
+inputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); highlightSuggestion(1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); highlightSuggestion(-1); }
+  else if (e.key === 'Escape') { closeSuggestions(); }
+  else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (suggestActive >= 0 && suggestions[suggestActive]) addWord(suggestions[suggestActive]);
+    else addWord();
+  }
+});
 undoBtn.addEventListener('click', undo);
-finishBtn.addEventListener('click', finish);
+giveUpBtn.addEventListener('click', giveUp);
 shareBtn.addEventListener('click', shareResult);
 modeSel.addEventListener('change', () => { mode = modeSel.value; newGame(); });
 newPairBtn.addEventListener('click', newGame);
+window.addEventListener('resize', () => { resizeCanvas(); fitView(false); });
 
 dayNumInline.textContent = dayNumber();
-newGame();
+resizeCanvas();
+
+if (!WORDS.length) {
+  setMessage('Could not load the word graph. Try reloading the page.', false);
+} else {
+  newGame();
+  requestAnimationFrame(loop);
+}
 </script>
 </body>
 </html>
