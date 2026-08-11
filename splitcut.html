@@ -58,6 +58,10 @@
   .sc-piece-a { fill: color-mix(in srgb, var(--fg) 28%, var(--card)); stroke: var(--fg); stroke-width: 2; }
   .sc-piece-b { fill: color-mix(in srgb, var(--fg) 10%, var(--card)); stroke: var(--fg); stroke-width: 2; }
   .sc-cutline { stroke: var(--fg); stroke-width: 2; stroke-dasharray: 6 5; opacity: 0.85; }
+  .sc-dot { fill: var(--card); stroke: var(--fg); stroke-width: 2.5; }
+  .sc-blade { fill: color-mix(in srgb, var(--fg) 45%, var(--card)); stroke: var(--fg); stroke-width: 1.5; stroke-linejoin: miter; }
+
+  .sc-piece-a, .sc-piece-b { stroke-linejoin: round; }
 
   .sc-ratio {
     max-width: 420px;
@@ -110,7 +114,7 @@
   </header>
 
   <h1 class="page-title">Splitcut</h1>
-  <p class="page-lede">Drag a line across the shape to cut it. Get within 48:52 to win. One scored shape a day, unlimited practice underneath.</p>
+  <p class="page-lede">Drag a line right across the shape, starting and finishing outside it. Get within 48:52 to win. One scored shape a day, unlimited practice underneath.</p>
 
   <div class="sc-controls">
     <select class="sc-select" id="mode">
@@ -149,7 +153,7 @@
   <p class="sc-credit">A fan-made game in the spirit of <a href="https://pfiffel.com/cutle/" target="_blank" rel="noopener">Cutle</a>, rebuilt from scratch with permission from its creator. Not affiliated with the original site.</p>
 
   <footer>
-    <span>Click and drag across the shape · scored shapes count once a day</span>
+    <span>Drag from outside the shape, straight across it · scored shapes count once a day</span>
     <span class="sep">·</span>
     <a href="/">Back</a>
   </footer>
@@ -177,10 +181,25 @@ const msgEl = document.getElementById('msg');
 
 let mode = 'daily';
 let shape = [];
-let cut = null;       // {a, b} extended line, or null
-let locked = false;   // true once today's daily has been scored
-let dragStart = null;
-let lastResult = null; // {pctA, pctB} of current cut
+let cut = null;        // {a, b} raw drag endpoints of the committed cut, or null
+let locked = false;    // true once today's daily has been scored
+let dragStart = null;  // raw pointer point where the drag began
+let dragNow = null;    // raw pointer point under the cursor right now
+let lastResult = null; // {lo, hi} of the committed cut
+let anim = null;       // slice + split animation state, or null when idle
+
+/* animation timings, in seconds, mirroring Cutle's two-phase reveal */
+const SLICE_DELAY = 0.15;
+const SLICE_DURATION = 0.35;
+const SLICE_FADE = 0.2;
+const SPLIT_DELAY = 0.3;
+const SPLIT_DURATION = 0.65;
+const MERGE_DURATION = 0.35;
+const REVEAL_DELAY = 0.9;
+const SPLIT_DISTANCE = 16;
+const BLADE_LENGTH = 16;
+const BLADE_WIDTH = 3;
+const MIN_DRAG = 8;
 
 /* ---------- seeded rng ---------- */
 
@@ -271,56 +290,182 @@ function area(poly) {
   return Math.abs(s) / 2;
 }
 
+function pointInPoly(p, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i], b = poly[j];
+    if ((a.y > p.y) !== (b.y > p.y) && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
 function toPointsAttr(poly) {
   return poly.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
 }
 
+/* ---------- easing ---------- */
+
+function easeInOutCubic(x) {
+  return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+}
+
+function easeOutExpo(x) {
+  return x >= 1 ? 1 : 1 - Math.pow(2, -10 * x);
+}
+
 /* ---------- rendering ---------- */
 
-function render() {
-  svg.innerHTML = '';
-  const ns = 'http://www.w3.org/2000/svg';
+const NS = 'http://www.w3.org/2000/svg';
 
-  if (!cut) {
-    const poly = document.createElementNS(ns, 'polygon');
-    poly.setAttribute('points', toPointsAttr(shape));
-    poly.setAttribute('class', 'sc-shape');
-    svg.appendChild(poly);
+function el(name, attrs) {
+  const node = document.createElementNS(NS, name);
+  for (const k in attrs) node.setAttribute(k, attrs[k]);
+  return node;
+}
+
+/* Idle and mid-drag rendering. The shape stays whole the whole time you drag:
+   all you get is a dot where you pressed, a dot under the cursor, and a dashed
+   line between them. Nothing is clipped or recoloured until you let go. */
+function render() {
+  if (anim) return; // the animation loop owns the SVG while it runs
+  svg.innerHTML = '';
+  svg.appendChild(el('polygon', { points: toPointsAttr(shape), class: 'sc-shape' }));
+
+  if (dragStart && dragNow) {
+    svg.appendChild(el('line', {
+      x1: dragStart.x, y1: dragStart.y, x2: dragNow.x, y2: dragNow.y, class: 'sc-cutline',
+    }));
+    svg.appendChild(el('circle', { cx: dragStart.x, cy: dragStart.y, r: 5, class: 'sc-dot' }));
+    svg.appendChild(el('circle', { cx: dragNow.x, cy: dragNow.y, r: 5, class: 'sc-dot' }));
+  }
+}
+
+function bladePoints(ux, uy, nx, ny) {
+  return [
+    { x: -ux * BLADE_LENGTH, y: -uy * BLADE_LENGTH },
+    { x: -nx * BLADE_WIDTH, y: -ny * BLADE_WIDTH },
+    { x: ux * BLADE_LENGTH, y: uy * BLADE_LENGTH },
+    { x: nx * BLADE_WIDTH, y: ny * BLADE_WIDTH },
+  ];
+}
+
+/* ---------- slice + split animation ---------- */
+
+/* Two overlapping phases, the way Cutle does it: a blade sweeps along the cut
+   line, and slightly after it starts the two pieces push apart along the cut's
+   normal. The score only appears once both have finished. */
+function startCutAnimation(pieceA, pieceB) {
+  const dx = cut.b.x - cut.a.x, dy = cut.b.y - cut.a.y;
+  const len = Math.hypot(dx, dy);
+  const ux = dx / len, uy = dy / len;
+  const nx = -uy, ny = ux; // normal pointing towards the positive sideVal side, i.e. piece A
+
+  svg.innerHTML = '';
+  const groupA = el('g', {});
+  const groupB = el('g', {});
+  if (pieceA.length >= 3) groupA.appendChild(el('polygon', { points: toPointsAttr(pieceA), class: 'sc-piece-a' }));
+  if (pieceB.length >= 3) groupB.appendChild(el('polygon', { points: toPointsAttr(pieceB), class: 'sc-piece-b' }));
+  svg.appendChild(groupA);
+  svg.appendChild(groupB);
+
+  const blade = el('polygon', { points: toPointsAttr(bladePoints(ux, uy, nx, ny)), class: 'sc-blade', opacity: 0 });
+  svg.appendChild(blade);
+
+  anim = {
+    t: 0, last: null, dir: 1, groupA, groupB, blade,
+    dx, dy, ux, uy, nx, ny, revealed: false, splitAt: 0,
+  };
+  requestAnimationFrame(tick);
+}
+
+/* Runs the split backwards so the pieces slide together again, then hands back
+   to the plain uncut render. */
+function startMergeAnimation() {
+  if (!anim) return;
+  anim.dir = -1;
+  anim.t = 0;
+  anim.last = null;
+  anim.blade.setAttribute('opacity', 0);
+  requestAnimationFrame(tick);
+}
+
+function tick(ts) {
+  if (!anim) return;
+  if (anim.last === null) anim.last = ts;
+  const dt = Math.min((ts - anim.last) / 1000, 0.05);
+  anim.last = ts;
+  anim.t += dt;
+
+  if (anim.dir === -1) {
+    const p = Math.min(anim.t / MERGE_DURATION, 1);
+    applySplit(anim.splitAt * (1 - p));
+    if (p >= 1) {
+      anim = null;
+      cut = null;
+      render();
+      return;
+    }
+    requestAnimationFrame(tick);
     return;
   }
 
-  const pieceA = clipHalf(shape, cut.a, cut.b, 1);
-  const pieceB = clipHalf(shape, cut.a, cut.b, -1);
-  const total = area(shape);
-  const areaA = area(pieceA);
-  const pctARaw = total > 0 ? (areaA / total) * 100 : 50;
-  const lo = Math.min(pctARaw, 100 - pctARaw);
-  const hi = 100 - lo;
-  lastResult = { lo, hi };
-
-  if (pieceA.length >= 3) {
-    const pa = document.createElementNS(ns, 'polygon');
-    pa.setAttribute('points', toPointsAttr(pieceA));
-    pa.setAttribute('class', 'sc-piece-a');
-    svg.appendChild(pa);
+  // blade sweep
+  const sliceT = anim.t - SLICE_DELAY;
+  let bladeProgress = 0, bladeAlpha;
+  if (sliceT < 0) {
+    bladeAlpha = anim.t / SLICE_DELAY;
+  } else {
+    const p = sliceT / SLICE_DURATION;
+    bladeProgress = easeInOutCubic(Math.min(p, 1));
+    bladeAlpha = p <= 1 ? 1 : Math.max(0, 1 - (sliceT - SLICE_DURATION) / SLICE_FADE);
   }
-  if (pieceB.length >= 3) {
-    const pb = document.createElementNS(ns, 'polygon');
-    pb.setAttribute('points', toPointsAttr(pieceB));
-    pb.setAttribute('class', 'sc-piece-b');
-    svg.appendChild(pb);
+  anim.blade.setAttribute('opacity', bladeAlpha.toFixed(3));
+  anim.blade.setAttribute(
+    'transform',
+    `translate(${(cut.a.x + anim.dx * bladeProgress).toFixed(2)},${(cut.a.y + anim.dy * bladeProgress).toFixed(2)})`
+  );
+
+  // pieces pushing apart
+  const splitT = anim.t - SPLIT_DELAY;
+  anim.splitAt = splitT <= 0 ? 0 : easeOutExpo(Math.min(splitT / SPLIT_DURATION, 1));
+  applySplit(anim.splitAt);
+
+  if (!anim.revealed && anim.t >= REVEAL_DELAY) {
+    anim.revealed = true;
+    revealResult();
   }
 
-  const line = document.createElementNS(ns, 'line');
-  line.setAttribute('x1', cut.a.x); line.setAttribute('y1', cut.a.y);
-  line.setAttribute('x2', cut.b.x); line.setAttribute('y2', cut.b.y);
-  line.setAttribute('class', 'sc-cutline');
-  svg.appendChild(line);
+  const bladeDone = anim.t >= SLICE_DELAY + SLICE_DURATION + SLICE_FADE;
+  const splitDone = anim.t >= SPLIT_DELAY + SPLIT_DURATION;
+  if (bladeDone && splitDone && anim.revealed) {
+    anim.blade.remove();
+    return; // animation settled, leave the split pieces on screen
+  }
+  requestAnimationFrame(tick);
+}
 
-  ratioA.style.width = lo + '%';
-  ratioB.style.width = hi + '%';
-  numA.textContent = lo.toFixed(1);
-  numB.textContent = hi.toFixed(1);
+function applySplit(progress) {
+  const d = progress * SPLIT_DISTANCE;
+  const ax = (anim.nx * d).toFixed(2), ay = (anim.ny * d).toFixed(2);
+  anim.groupA.setAttribute('transform', `translate(${ax},${ay})`);
+  anim.groupB.setAttribute('transform', `translate(${-ax},${-ay})`);
+}
+
+function revealResult() {
+  if (!lastResult) return;
+  ratioA.style.width = lastResult.lo + '%';
+  ratioB.style.width = lastResult.hi + '%';
+  numA.textContent = lastResult.lo.toFixed(1);
+  numB.textContent = lastResult.hi.toFixed(1);
+  if (mode === 'daily') {
+    score();
+  } else {
+    const deviation = Math.abs(50 - lastResult.lo);
+    msgEl.textContent = `${lastResult.lo.toFixed(1)} : ${lastResult.hi.toFixed(1)}. Off by ${deviation.toFixed(1)}.`;
+    msgEl.className = deviation <= 2 ? 'sc-msg win' : 'sc-msg';
+  }
 }
 
 /* ---------- pointer input ---------- */
@@ -331,22 +476,56 @@ function toSvgPoint(evt) {
   return pt.matrixTransform(svg.getScreenCTM().inverse());
 }
 
-function extendLine(s, e) {
-  const dx = e.x - s.x, dy = e.y - s.y;
-  const len = Math.hypot(dx, dy);
-  if (len < 1e-6) return null;
-  const ux = dx / len, uy = dy / len;
-  return {
-    a: { x: s.x - ux * 2000, y: s.y - uy * 2000 },
-    b: { x: e.x + ux * 2000, y: e.y + uy * 2000 },
-  };
+function failCut(text) {
+  dragStart = null;
+  dragNow = null;
+  cut = null;
+  msgEl.textContent = text;
+  msgEl.className = 'sc-msg';
+  render();
+}
+
+/* Commits the drag: clips once, then hands over to the animation. The raw drag
+   endpoints are enough, since clipHalf treats a and b as an infinite line. */
+function commitCut(start, end) {
+  const len = Math.hypot(end.x - start.x, end.y - start.y);
+  if (len < MIN_DRAG) { failCut(''); return; }
+  if (pointInPoly(end, shape)) { failCut('End the cut outside the shape.'); return; }
+
+  const pieceA = clipHalf(shape, start, end, 1);
+  const pieceB = clipHalf(shape, start, end, -1);
+  const total = area(shape);
+  const areaA = area(pieceA);
+  const areaB = area(pieceB);
+  if (total <= 0 || areaA <= 0.01 || areaB <= 0.01) {
+    failCut('That line misses the shape. Cut straight through it.');
+    return;
+  }
+
+  const pctARaw = (areaA / total) * 100;
+  const lo = Math.min(pctARaw, 100 - pctARaw);
+  lastResult = { lo, hi: 100 - lo };
+
+  cut = { a: start, b: end };
+  dragStart = null;
+  dragNow = null;
+  startCutAnimation(pieceA, pieceB);
 }
 
 svg.addEventListener('pointerdown', (evt) => {
   if (mode === 'daily' && locked) return;
+  const p = toSvgPoint(evt);
+  if (pointInPoly(p, shape)) {
+    msgEl.textContent = 'Start the cut outside the shape.';
+    msgEl.className = 'sc-msg';
+    return;
+  }
   svg.setPointerCapture(evt.pointerId);
-  dragStart = toSvgPoint(evt);
+  anim = null;
   cut = null;
+  lastResult = null;
+  dragStart = p;
+  dragNow = p;
   msgEl.textContent = '';
   msgEl.className = 'sc-msg';
   render();
@@ -354,20 +533,18 @@ svg.addEventListener('pointerdown', (evt) => {
 
 svg.addEventListener('pointermove', (evt) => {
   if (!dragStart) return;
-  const p = toSvgPoint(evt);
-  const line = extendLine(dragStart, p);
-  if (line) { cut = line; render(); }
+  dragNow = toSvgPoint(evt);
+  render();
 });
 
 svg.addEventListener('pointerup', (evt) => {
   if (!dragStart) return;
-  const p = toSvgPoint(evt);
-  const line = extendLine(dragStart, p);
-  dragStart = null;
-  if (!line) return;
-  cut = line;
-  render();
-  if (lastResult) score();
+  commitCut(dragStart, toSvgPoint(evt));
+});
+
+svg.addEventListener('pointercancel', () => {
+  if (!dragStart) return;
+  failCut('');
 });
 
 /* ---------- scoring / stats ---------- */
@@ -409,17 +586,19 @@ function score() {
   locked = true;
   refreshHud();
   msgEl.textContent = win
-    ? `${lastResult.lo.toFixed(1)} : ${lastResult.hi.toFixed(1)} — clean split, that's a win.`
-    : `${lastResult.lo.toFixed(1)} : ${lastResult.hi.toFixed(1)} — off by ${deviation.toFixed(1)}. Back tomorrow for the next shape.`;
+    ? `${lastResult.lo.toFixed(1)} : ${lastResult.hi.toFixed(1)}. Clean split, that's a win.`
+    : `${lastResult.lo.toFixed(1)} : ${lastResult.hi.toFixed(1)}. Off by ${deviation.toFixed(1)}. Back tomorrow for the next shape.`;
   msgEl.className = win ? 'sc-msg win' : 'sc-msg';
 }
 
 /* ---------- game setup ---------- */
 
 function newGame() {
+  anim = null;
   cut = null;
   lastResult = null;
   dragStart = null;
+  dragNow = null;
   msgEl.textContent = '';
   msgEl.className = 'sc-msg';
   ratioA.style.width = '50%';
@@ -438,7 +617,7 @@ function newGame() {
       lastResult = { lo: r.lo, hi: r.hi };
       cut = null; // shape shown uncut until user drags again, but locked from scoring
       msgEl.textContent = r.win
-        ? `Already played today: ${r.lo.toFixed(1)} : ${r.hi.toFixed(1)} — win. Come back tomorrow.`
+        ? `Already played today: ${r.lo.toFixed(1)} : ${r.hi.toFixed(1)}, a win. Come back tomorrow.`
         : `Already played today: ${r.lo.toFixed(1)} : ${r.hi.toFixed(1)}. Come back tomorrow.`;
       msgEl.className = r.win ? 'sc-msg win' : 'sc-msg';
     } else {
@@ -458,8 +637,8 @@ function newGame() {
 function shareResult() {
   if (!lastResult) return;
   const text = mode === 'daily'
-    ? `Splitcut #${dayNumber()} — ${lastResult.lo.toFixed(1)} : ${lastResult.hi.toFixed(1)}`
-    : `Splitcut (practice) — ${lastResult.lo.toFixed(1)} : ${lastResult.hi.toFixed(1)}`;
+    ? `Splitcut #${dayNumber()}: ${lastResult.lo.toFixed(1)} : ${lastResult.hi.toFixed(1)}`
+    : `Splitcut (practice): ${lastResult.lo.toFixed(1)} : ${lastResult.hi.toFixed(1)}`;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => {
       msgEl.textContent = 'Result copied.';
@@ -470,7 +649,17 @@ function shareResult() {
 
 modeSel.addEventListener('change', () => { mode = modeSel.value; newGame(); });
 newShapeBtn.addEventListener('click', newGame);
-resetBtn.addEventListener('click', () => { cut = null; lastResult = null; render(); });
+resetBtn.addEventListener('click', () => {
+  ratioA.style.width = '50%';
+  ratioB.style.width = '50%';
+  numA.textContent = '50.0';
+  numB.textContent = '50.0';
+  dragStart = null;
+  dragNow = null;
+  if (anim) { startMergeAnimation(); return; }
+  cut = null;
+  render();
+});
 shareBtn.addEventListener('click', shareResult);
 
 dayNumInline.textContent = dayNumber();
