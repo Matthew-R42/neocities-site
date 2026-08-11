@@ -6,6 +6,7 @@ No runtime dependency on Datamuse, no backend, no build step on the site.
 
 from __future__ import annotations
 
+import itertools
 import json
 import re
 import sys
@@ -73,12 +74,24 @@ def fetch(word: str, maximum: int = 100, rel: str = "ml") -> list:
 
 
 def fetch_blended(word: str, maximum: int = 100) -> list:
-    """Union of means-like and triggers results, means-like entries first so
-    ties in later rank-based scoring favour the tighter relationship."""
+    """Interleave means-like and triggers results rank-for-rank.
+
+    Concatenating them doesn't work: "means like" almost always returns a
+    full page (100 results) on its own, so appending triggers after it just
+    pushes every trigger word past whatever rank window build_edges later
+    reads, and the blend silently degrades to means-like only. Interleaving
+    keeps both signals represented in the ranks that actually get scored.
+    """
     ml = fetch(word, maximum, rel="ml")
     trg = fetch(word, maximum, rel="trg")
-    seen = {e["word"] for e in ml}
-    return ml + [e for e in trg if e["word"] not in seen]
+    seen: set[str] = set()
+    blended = []
+    for a, b in itertools.zip_longest(ml, trg):
+        for e in (a, b):
+            if e and e["word"] not in seen:
+                seen.add(e["word"])
+                blended.append(e)
+    return blended
 
 
 def freq_of(entry: dict) -> float:
@@ -196,12 +209,16 @@ def build_edges(vocab: list[str], top_n: int, keep_frac: float):
     # into a 0..1 score. Both directions must agree: requiring reciprocity is
     # what filters out polysemy noise, where a rare sense of one word drags in
     # something unrelated to the sense a player has in mind.
+    # Window is 50 rather than the pre-interleave 40: since fetch_blended now
+    # alternates means-like and triggers, a window this size holds roughly 25
+    # of each instead of being dominated by whichever source is longer.
+    RANK_WINDOW = 50
     directed: dict[tuple[int, int], float] = {}
     for word, entries in results:
         a = index[word]
         hits = [e for e in entries if e.get("word") in index and e["word"] != word]
-        for rank, e in enumerate(hits[:40]):
-            directed[(a, index[e["word"]])] = 1.0 - (rank / 40.0)
+        for rank, e in enumerate(hits[:RANK_WINDOW]):
+            directed[(a, index[e["word"]])] = 1.0 - (rank / RANK_WINDOW)
 
     pair_score: dict[tuple[int, int], float] = {}
     for (a, b), s in directed.items():
@@ -283,9 +300,12 @@ def shortest_len(adj: dict[int, list[int]], a: int, b: int, cap: int = 9) -> int
 def main() -> None:
     vocab = crawl_vocabulary(1100)
     # Reciprocity already does the quality filtering, so keep every mutual pair
-    # and let the per-node degree cap control density. 8 rather than 6: with
-    # two data sources feeding candidates, a tighter cap was cutting off the
-    # trigger-sourced thematic edges in favour of denser synonym clusters.
+    # and let the per-node degree cap control density. 8 rather than the
+    # original 6: with two data sources genuinely competing for each node's
+    # slots (see fetch_blended), a tighter cap let new trigger-sourced edges
+    # crowd out perfectly good means-like ones. Tried 10 too, but it let in
+    # more polysemy noise (apple-the-company via "desktop") than it was
+    # worth — 8 was the better trade in testing.
     edges = build_edges(vocab, top_n=8, keep_frac=1.0)
 
     comp = largest_component(len(vocab), edges)
