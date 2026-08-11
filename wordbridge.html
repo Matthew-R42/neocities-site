@@ -791,12 +791,34 @@ function setMessage(text, win) {
   msgEl.className = win ? 'wb-msg win' : 'wb-msg';
 }
 
+// Common plural/verb endings, tried in order. The vocabulary keeps only one
+// form of each concept (see is_inflection in the graph build script), so a
+// player typing "clouds" or "rivers" needs mapping back to the form that
+// actually exists rather than a flat rejection.
+const INFLECTION_SUFFIXES = [['ies', 'y'], ['es', ''], ['s', ''], ['ing', ''], ['ed', '']];
+
+function resolveWord(word) {
+  if (WORD_INDEX.has(word)) return word;
+  for (const [suffix, replacement] of INFLECTION_SUFFIXES) {
+    if (word.endsWith(suffix) && word.length > suffix.length + 1) {
+      const stem = word.slice(0, -suffix.length) + replacement;
+      if (WORD_INDEX.has(stem)) return stem;
+      if (stem.length > 3 && stem[stem.length - 1] === stem[stem.length - 2] && WORD_INDEX.has(stem.slice(0, -1))) {
+        return stem.slice(0, -1);
+      }
+      if ((suffix === 'ing' || suffix === 'ed') && WORD_INDEX.has(stem + 'e')) return stem + 'e';
+    }
+  }
+  return null;
+}
+
 function addWord(raw) {
   if (finished || locked) return;
-  const word = (raw !== undefined ? raw : inputEl.value).trim().toLowerCase();
-  if (!word) return;
-  if (!WORD_INDEX.has(word)) {
-    setMessage(`"${word}" is not in the word list. Try the suggestions as you type.`, false);
+  const typed = (raw !== undefined ? raw : inputEl.value).trim().toLowerCase();
+  if (!typed) return;
+  const word = resolveWord(typed);
+  if (word === null) {
+    setMessage(`"${typed}" is not in the word list. Try the suggestions as you type.`, false);
     return;
   }
   const vocabIdx = WORD_INDEX.get(word);
@@ -820,10 +842,11 @@ function addWord(raw) {
   if (path) { finishGame(true, path.length - 1); return; }
   if (added.length >= WORD_BUDGET) { finishGame(false, null); return; }
 
+  const resolvedNote = typed !== word ? ` (as ${word})` : '';
   if (connections === 0) {
-    setMessage(`${word} added, but it does not connect to anything yet.`, false);
+    setMessage(`${word}${resolvedNote} added, but it does not connect to anything yet.`, false);
   } else {
-    setMessage(`${word} added, linking to ${connections} word${connections === 1 ? '' : 's'}.`, false);
+    setMessage(`${word}${resolvedNote} added, linking to ${connections} word${connections === 1 ? '' : 's'}.`, false);
   }
 }
 

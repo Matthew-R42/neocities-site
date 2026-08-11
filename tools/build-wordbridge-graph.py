@@ -49,11 +49,17 @@ if CACHE.exists():
     cache = json.loads(CACHE.read_text())
 
 
-def fetch(word: str, maximum: int = 100) -> list:
-    key = f"{word}:{maximum}"
+def fetch(word: str, maximum: int = 100, rel: str = "ml") -> list:
+    """rel="ml" is Datamuse "means like" (synonym-ish, tight). rel="trg" is
+    "triggers" (statistical co-occurrence, loose/thematic — river -> flood,
+    ocean -> wave). The two barely overlap, so blending both is what gets
+    thematic chains like river -> ocean -> cloud to connect in a couple of
+    hops instead of three or four synonym-only hops."""
+    key = f"{rel}:{word}:{maximum}"
     if key in cache:
         return cache[key]
-    q = urllib.parse.urlencode({"ml": word, "md": "fp", "max": maximum})
+    param = "ml" if rel == "ml" else "rel_trg"
+    q = urllib.parse.urlencode({param: word, "md": "fp", "max": maximum})
     for attempt in range(4):
         try:
             with urllib.request.urlopen(f"{API}?{q}", timeout=25) as r:
@@ -64,6 +70,15 @@ def fetch(word: str, maximum: int = 100) -> list:
             if attempt == 3:
                 return []
     return []
+
+
+def fetch_blended(word: str, maximum: int = 100) -> list:
+    """Union of means-like and triggers results, means-like entries first so
+    ties in later rank-based scoring favour the tighter relationship."""
+    ml = fetch(word, maximum, rel="ml")
+    trg = fetch(word, maximum, rel="trg")
+    seen = {e["word"] for e in ml}
+    return ml + [e for e in trg if e["word"] not in seen]
 
 
 def freq_of(entry: dict) -> float:
@@ -95,6 +110,15 @@ sample scope section segment share source specific standard status stock subset
 success support target task total track trend trial version whereas
 """.split())
 
+# Datamuse's trigger data is corpus co-occurrence, so it surfaces whichever
+# sense of a word is most common in text regardless of which sense a player
+# means. "cloud" pulls in cloud computing, "apple" pulls in the company. This
+# list exists only to knock out that kind of cross-domain pollution.
+POLLUTION = set("""
+saas apps app google amazon server backup storage infrastructure provider
+computing software hardware startup ipad iphone macbook microsoft
+""".split())
+
 INFLECTION_SUFFIXES = (("ies", "y"), ("es", ""), ("s", ""), ("ing", ""), ("ed", ""))
 
 
@@ -115,7 +139,7 @@ def is_inflection(word: str, pool: set[str]) -> bool:
 
 def acceptable(entry: dict) -> bool:
     w = entry.get("word", "")
-    if not WORD_RE.match(w) or w in STOPLIST:
+    if not WORD_RE.match(w) or w in STOPLIST or w in POLLUTION:
         return False
     tags = entry.get("tags", [])
     if "prop" in tags or "n" not in tags:
@@ -136,7 +160,7 @@ def crawl_vocabulary(target_size: int) -> list[str]:
     seeds = [s for s in dict.fromkeys(SEEDS) if WORD_RE.match(s)]
     print(f"  {len(seeds)} seeds", file=sys.stderr)
     with ThreadPoolExecutor(max_workers=8) as pool:
-        results = list(pool.map(lambda w: (w, fetch(w, 60)), seeds))
+        results = list(pool.map(lambda w: (w, fetch_blended(w, 60)), seeds))
 
     hits: dict[str, int] = {}
     for _, entries in results:
@@ -164,9 +188,9 @@ def crawl_vocabulary(target_size: int) -> list[str]:
 
 def build_edges(vocab: list[str], top_n: int, keep_frac: float):
     index = {w: i for i, w in enumerate(vocab)}
-    print(f"querying {len(vocab)} words for neighbours", file=sys.stderr)
+    print(f"querying {len(vocab)} words for neighbours (means-like + triggers)", file=sys.stderr)
     with ThreadPoolExecutor(max_workers=8) as pool:
-        results = list(pool.map(lambda w: (w, fetch(w, 100)), vocab))
+        results = list(pool.map(lambda w: (w, fetch_blended(w, 100)), vocab))
 
     # Rank position is the only comparable signal Datamuse exposes, so turn it
     # into a 0..1 score. Both directions must agree: requiring reciprocity is
@@ -259,8 +283,10 @@ def shortest_len(adj: dict[int, list[int]], a: int, b: int, cap: int = 9) -> int
 def main() -> None:
     vocab = crawl_vocabulary(1100)
     # Reciprocity already does the quality filtering, so keep every mutual pair
-    # and let the per-node degree cap control density.
-    edges = build_edges(vocab, top_n=6, keep_frac=1.0)
+    # and let the per-node degree cap control density. 8 rather than 6: with
+    # two data sources feeding candidates, a tighter cap was cutting off the
+    # trigger-sourced thematic edges in favour of denser synonym clusters.
+    edges = build_edges(vocab, top_n=8, keep_frac=1.0)
 
     comp = largest_component(len(vocab), edges)
     print(f"largest component: {len(comp)} of {len(vocab)} words", file=sys.stderr)
