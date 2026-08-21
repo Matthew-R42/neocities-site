@@ -38,10 +38,14 @@ const SITE_THEMES = [
     btn.type = 'button';
     btn.className = 'site-theme-btn';
     btn.setAttribute('aria-label', 'Change theme');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-controls', 'site-theme-panel');
     btn.textContent = 'Theme';
 
     const panel = document.createElement('div');
     panel.className = 'site-theme-panel hidden';
+    panel.id = 'site-theme-panel';
+    panel.setAttribute('aria-label', 'Theme choices');
 
     for (const t of SITE_THEMES) {
       const swatch = document.createElement('button');
@@ -70,18 +74,31 @@ const SITE_THEMES = [
     // Scroll it into view whenever it opens.
     function openPanel() {
       panel.classList.remove('hidden');
+      btn.setAttribute('aria-expanded', 'true');
       panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closePanel() {
+      panel.classList.add('hidden');
+      btn.setAttribute('aria-expanded', 'false');
     }
 
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (panel.classList.contains('hidden')) openPanel();
-      else panel.classList.add('hidden');
+      else closePanel();
     });
 
     document.addEventListener('click', (e) => {
       if (!panel.contains(e.target) && !btn.contains(e.target)) {
-        panel.classList.add('hidden');
+        closePanel();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !panel.classList.contains('hidden')) {
+        closePanel();
+        btn.focus();
       }
     });
 
