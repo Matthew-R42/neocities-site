@@ -293,6 +293,8 @@ main[id],
 
 .folder[hidden] { display: none; }
 .card[hidden] { display: none; }
+.owner-projects { display: contents; }
+.owner-projects[hidden] { display: none; }
 
 /* ---------- card grid ---------- */
 .grid {

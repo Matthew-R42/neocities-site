@@ -2,13 +2,15 @@
   const search = document.getElementById('project-search');
   const clear = document.getElementById('project-search-clear');
   const status = document.getElementById('project-search-status');
-  const cards = [...document.querySelectorAll('[data-project-card]')];
-  if (!search || !clear || !status || !cards.length) return;
+  const ownerProjects = document.getElementById('owner-projects');
+  const ownerLogin = document.getElementById('owner-login');
+  if (!search || !clear || !status) return;
 
   const sections = [...document.querySelectorAll('.folder')];
-  const total = cards.length;
 
   function updateResults() {
+    const cards = [...document.querySelectorAll('[data-project-card]')];
+    const total = cards.length;
     const query = search.value.trim().toLowerCase();
     let visible = 0;
 
@@ -36,4 +38,30 @@
     updateResults();
     search.focus();
   });
+
+  if (ownerProjects && ownerLogin) {
+    fetch('/owner/cards.html', {
+      credentials: 'same-origin',
+      headers: { Accept: 'text/html' },
+    })
+      .then((response) => {
+        if (!response.ok || !response.headers.get('content-type')?.includes('text/html')) {
+          throw new Error('Owner projects are unavailable');
+        }
+        return response.text();
+      })
+      .then((html) => {
+        if (!html.includes('data-owner-projects')) return;
+        ownerProjects.innerHTML = html;
+        ownerProjects.hidden = false;
+        ownerLogin.textContent = 'Log out';
+        ownerLogin.href = '/cdn-cgi/access/logout?returnTo=%2F';
+        updateResults();
+      })
+      .catch(() => {
+        ownerProjects.hidden = true;
+      });
+  }
+
+  updateResults();
 })();

@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>matthew</title>
-<meta name="description" content="Matthew. Short-form video about AI safety, PDKU fellow July 2026, president of EA UNSW, and RollerMap, a map for rating street pavement quality.">
+<meta name="description" content="Matthew. Short-form video about AI safety, PDKU fellow July 2026, president of EA UNSW, and small web tools.">
 <meta property="og:title" content="matthew">
-<meta property="og:description" content="Short-form video about AI safety, PDKU fellow July 2026, president of EA UNSW, and RollerMap, a map for rating street pavement quality.">
+<meta property="og:description" content="Short-form video about AI safety, PDKU fellow July 2026, president of EA UNSW, and small web tools.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mtw4244.work/">
 <meta name="theme-color" content="#000000">
@@ -33,6 +33,7 @@
       <span class="brand-name">matthew</span>
     </div>
     <div class="links">
+      <a id="owner-login" class="btn-outline" href="/owner/">Log in with Google</a>
       <a class="btn" href="/contacts">Contacts</a>
     </div>
   </header>
@@ -56,24 +57,14 @@
       <input id="project-search" class="index-search" type="search" placeholder="Search projects and games" autocomplete="off">
       <button id="project-search-clear" class="index-search-clear" type="button" hidden>Clear</button>
     </div>
-    <p id="project-search-status" class="index-search-status" aria-live="polite">12 projects and games</p>
+    <p id="project-search-status" class="index-search-status" aria-live="polite">10 projects and games</p>
   </div>
 
   <details class="folder" id="projects" open>
     <summary class="folder-summary"><span class="dot"></span>Projects<span class="folder-chev" aria-hidden="true">›</span></summary>
     <div class="grid">
 
-      <a class="card" data-project-card href="/roller">
-        <div class="card-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 20 3 17V4l6 3"/><path d="m9 20 6-3V4L9 7"/><path d="m15 17 6 3V7l-6-3"/>
-          </svg>
-        </div>
-        <div class="card-body">
-          <h3>RollerMap <span class="chev">›</span></h3>
-          <p>Rate street pavement quality block by block, 1 for glass, 5 for go around. Built for rollerblading around Sydney.</p>
-        </div>
-      </a>
+      <div id="owner-projects" class="owner-projects" hidden></div>
 
       <a class="card" data-project-card href="/clock">
         <div class="card-icon" aria-hidden="true">
@@ -96,18 +87,6 @@
         <div class="card-body">
           <h3>Mai Mai <span class="chev">›</span></h3>
           <p>My Sydney maimai venue list, cross-checked against the Google Maps source list and exportable when it changes.</p>
-        </div>
-      </a>
-
-      <a class="card" data-project-card href="https://github.com/Matthew-R42" target="_blank" rel="noopener">
-        <div class="card-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m8 8-4 4 4 4"/><path d="m16 8 4 4-4 4"/><path d="M13 6l-2 12"/>
-          </svg>
-        </div>
-        <div class="card-body">
-          <h3>Code <span class="ext">↗</span></h3>
-          <p>Video tooling, map experiments, and whatever else is in progress.</p>
         </div>
       </a>
 
