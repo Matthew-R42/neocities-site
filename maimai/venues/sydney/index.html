@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mai Mai venues - mtw4244.work</title>
+<meta name="description" content="Matthew's Sydney maimai venue list, cross-checked against a NSW venue sheet.">
+<meta property="og:title" content="Mai Mai venues">
+<meta property="og:description" content="A Sydney maimai venue list cross-checked against a NSW venue sheet.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mtw4244.work/maimai/venues/sydney/">
+<meta name="theme-color" content="#000000">
+<link rel="canonical" href="https://mtw4244.work/maimai/venues/sydney/">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23111%22/><text x=%2250%22 y=%2270%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22700%22 font-size=%2262%22 fill=%22%23fff%22 text-anchor=%22middle%22>M</text></svg>">
+<link rel="stylesheet" href="/style.css">
+<script src="/theme.js" defer></script>
+<style>
+  .mai-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 24px 0 18px;
+  }
+
+  .mai-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .mai-button {
+    appearance: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--fg);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    padding: 8px 13px;
+  }
+
+  .mai-button:hover { border-color: var(--line-hover); }
+  .mai-button.primary { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+  .mai-button.danger { color: var(--muted); }
+  .mai-button.danger:hover { color: var(--fg); }
+
+  .mai-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0 0 20px;
+  }
+
+  .mai-pill {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+
+  .mai-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .mai-group { display: grid; gap: 10px; }
+  .mai-group + .mai-group { margin-top: 22px; }
+
+  .mai-group-title {
+    font-size: 14px;
+    font-weight: 620;
+    margin: 0;
+  }
+
+  .mai-group-list { display: grid; gap: 10px; }
+
+  .mai-venue {
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 14px 16px;
+  }
+
+  .mai-venue:hover { border-color: var(--line-hover); }
+
+  .mai-venue-name {
+    font-size: 15px;
+    font-weight: 620;
+  }
+
+  .mai-venue-detail {
+    color: var(--muted);
+    font-size: 12.5px;
+    margin-top: 2px;
+  }
+
+  .mai-venue.closed { opacity: 0.62; }
+  .mai-venue.closed .mai-venue-name { text-decoration: line-through; }
+
+  .mai-venue-link {
+    color: var(--muted);
+    flex: 0 0 auto;
+    font-size: 13px;
+    text-decoration: none;
+  }
+
+  .mai-venue-link:hover { color: var(--fg); }
+
+  .mai-empty {
+    border: 1px dashed var(--line-hover);
+    border-radius: 12px;
+    color: var(--muted);
+    padding: 20px;
+  }
+
+  .mai-file { display: none; }
+
+  @media (max-width: 520px) {
+    .mai-venue { align-items: flex-start; }
+    .mai-venue-link { padding-top: 2px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="topbar">
+    <a class="back" href="/"><span class="chev-l">‹</span> matthew</a>
+    <div class="links">
+      <a class="btn-outline" href="/contacts">Contacts</a>
+    </div>
+  </header>
+
+  <h1 class="page-title">Mai Mai</h1>
+  <p class="page-lede">Sydney venues with maimai, grouped by operator and suburb.</p>
+
+  <div class="mai-toolbar">
+    <div class="mai-actions">
+      <a class="mai-button" href="https://www.google.com.au/maps/@-33.8357568,150.982843,12z/data=!4m7!1m3!11m2!2sNViyBJiVo5cs19aBi0fN3A!3e3!11m2!2sNViyBJiVo5cs19aBi0fN3A!3e3" target="_blank" rel="noopener">Shared Maps list ↗</a>
+      <button class="mai-button primary" type="button" id="mai-export-json">JSON</button>
+      <button class="mai-button" type="button" id="mai-export-csv">CSV</button>
+      <label class="mai-button" for="mai-import">Import<input class="mai-file" id="mai-import" type="file" accept=".json,.csv,application/json,text/csv"></label>
+    </div>
+  </div>
+
+  <div class="mai-meta" aria-live="polite">
+    <span class="mai-pill" id="mai-count"></span>
+    <span class="mai-pill" id="mai-updated"></span>
+  </div>
+
+  <div class="mai-list" id="mai-list"></div>
+
+  <footer>
+    <a href="/">Home</a>
+    <span class="sep">·</span>
+    <a href="/contacts">Contacts</a>
+  </footer>
+
+</div>
+
+<script src="/maimai.js"></script>
+</body>
+</html>
