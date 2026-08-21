@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#11121b" />
+    <meta
+      name="description"
+      content="A searchable maimai collection atlas for titles, frames, and collection cosmetics."
+    />
+    <title>maimai collection atlas</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="#top" aria-label="maimai collection atlas home">
+        <span class="wordmark-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span>maimai <em>collection atlas</em></span>
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="#titles">Titles</a>
+        <a href="#cosmetics">Cosmetics</a>
+        <a href="#frames">Jewels + plates</a>
+        <a href="#sources">Sources</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero page-width">
+        <div class="hero-copy">
+          <p class="eyebrow">A player-made reference</p>
+          <h1>Build your<br /><span>profile.</span></h1>
+          <p class="hero-intro">
+            Titles, unlock conditions, version history, and the collectibles that make a
+            maimai profile yours, cross-referenced across Japanese and English references.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#titles">Browse titles <span>↓</span></a>
+            <a class="button button-quiet" href="#cosmetics">See cosmetics</a>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="orbit orbit-three"></div>
+          <div class="hero-disc"><span>ま</span><small>COLLECTION</small></div>
+          <div class="hero-label label-top">PROFILE<br />CUSTOMISATION</div>
+          <div class="hero-label label-bottom">DX / DX PLUS<br /><strong>01 / 06</strong></div>
+        </div>
+      </section>
+
+      <section class="stats-strip page-width" aria-label="Catalogue totals">
+        <div><strong id="title-count">2,125</strong><span>title records</span></div>
+        <div><strong id="new-title-count">793</strong><span>new cross-checks</span></div>
+        <div><strong id="collectible-count">912</strong><span>collectible records</span></div>
+        <div><strong><span id="jewel-count">6</span> / <span id="plate-count">26</span></strong><span>jewels / plates</span></div>
+      </section>
+
+      <section class="intro-section page-width" id="cosmetics">
+        <div class="section-kicker">01 / collection system</div>
+        <div class="section-heading">
+          <h2>Everything that<br /><span>follows your name.</span></h2>
+          <p>
+            Collections can be bought with in-game currency or earned by completing specific
+            requirements. RemyWiki describes six kinds of profile customisation.
+          </p>
+        </div>
+        <div class="cosmetic-grid" id="cosmetic-grid"></div>
+      </section>
+
+      <section class="titles-section" id="titles">
+        <div class="page-width">
+          <div class="section-kicker">02 / title archive</div>
+          <div class="section-heading title-heading">
+            <div>
+              <h2>Find your <span>title.</span></h2>
+              <p>Search the full title archive by wording, unlock condition, category, or version. NEW entries came from the additional Japanese sources below and were checked against the original archive before being added.</p>
+            </div>
+            <div class="title-meta"><span id="visible-count">1,332</span> shown</div>
+          </div>
+
+          <div class="filters" aria-label="Title filters">
+            <label class="search-box">
+              <span aria-hidden="true">⌕</span>
+              <input id="title-search" type="search" placeholder="Search titles and conditions" />
+            </label>
+            <label>
+              <span>Tier</span>
+              <select id="tier-filter"><option value="all">All tiers</option></select>
+            </label>
+            <label>
+              <span>Category</span>
+              <select id="category-filter"><option value="all">All categories</option></select>
+            </label>
+            <label>
+              <span>Version</span>
+              <select id="version-filter"><option value="all">All versions</option></select>
+            </label>
+            <label class="check-control"><input id="unavailable-filter" type="checkbox" checked /> <span>Include retired</span></label>
+          </div>
+
+          <div class="tier-legend" id="tier-legend"></div>
+          <div class="table-wrap">
+            <table class="title-table">
+              <thead>
+                <tr><th>Title</th><th>How to unlock / description</th><th>Version</th><th>Tier</th></tr>
+              </thead>
+              <tbody id="title-table-body"></tbody>
+            </table>
+            <div class="empty-state" id="empty-state" hidden>No titles match those filters.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="frames-section page-width" id="frames">
+        <div class="section-kicker">03 / jewels and plates</div>
+        <div class="section-heading">
+          <h2>Two different<br /><span>collectibles.</span></h2>
+          <p>
+            The three layered clear, AP, and FDX assets are jewels. Plates are a separate
+            collectible family with their own version list and chart requirements. The artwork
+            below is loaded from Jerry’s own reference CDN.
+          </p>
+        </div>
+        <h3 class="subsection-title">Jewels <small><span id="jewel-count-inline">6</span> era groups</small></h3>
+        <div class="jewel-grid" id="jewel-grid"></div>
+        <h3 class="subsection-title">Plates <small><span id="plate-count-inline">26</span> version groups</small></h3>
+        <div class="plate-grid" id="plate-grid"></div>
+        <h3 class="subsection-title">Translated collection index <small><span id="collectible-visible-count">912</span> shown</small></h3>
+        <p class="reading-note">English glosses translate common condition phrases. Japanese names and exact source wording stay visible for cross-checking.</p>
+        <div class="collectible-filters">
+          <label class="search-box light-search"><span aria-hidden="true">⌕</span><input id="collectible-search" type="search" placeholder="Search Japanese names, translations, or conditions" /></label>
+          <label><span>Type</span><select id="collectible-type-filter"><option value="all">All collectible types</option></select></label>
+        </div>
+        <div class="table-wrap light-table-wrap">
+          <table class="collectible-table">
+            <thead><tr><th>Type</th><th>Name / translation</th><th>Condition</th><th>Section</th><th>Evidence</th></tr></thead>
+            <tbody id="collectible-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="sources-section page-width" id="sources">
+        <div class="section-kicker">04 / provenance</div>
+        <div class="source-panel">
+          <div>
+            <h2>Keep the links<br /><span>close at hand.</span></h2>
+            <p>This atlas is a convenience layer over the linked community references. It currently indexes <span id="source-count">17</span> source pages and records which entries were cross-referenced.</p>
+          </div>
+          <div class="source-list">
+            <div id="source-list"></div>
+          </div>
+        </div>
+        <p class="build-note">Catalogue snapshot built 21 August 2026 · NEW entries are additions not matched to the original title archive by title and tier. Alternate conditions remain attached to cross-referenced records.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer page-width">
+      <span>maimai collection atlas</span>
+      <span>made for browsing, not bureaucracy</span>
+    </footer>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
