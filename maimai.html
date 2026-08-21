@@ -27,19 +27,6 @@
 
   .mai-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-  .mai-filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
-  .mai-select {
-    appearance: none;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    background: var(--card);
-    color: var(--fg);
-    font: inherit;
-    font-size: 13px;
-    padding: 8px 30px 8px 13px;
-  }
-
   .mai-button {
     appearance: none;
     border: 1px solid var(--line);
@@ -56,14 +43,6 @@
   .mai-button.primary { background: var(--fg); border-color: var(--fg); color: var(--bg); }
   .mai-button.danger { color: var(--muted); }
   .mai-button.danger:hover { color: var(--fg); }
-
-  .mai-source {
-    color: var(--muted);
-    font-size: 13px;
-    margin: 0 0 24px;
-  }
-
-  .mai-source a { color: var(--fg); }
 
   .mai-meta {
     display: flex;
@@ -119,25 +98,6 @@
     margin-top: 2px;
   }
 
-  .mai-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-
-  .mai-badge {
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    color: var(--muted);
-    font-size: 11px;
-    padding: 3px 8px;
-  }
-
-  .mai-badge.review { color: var(--fg); border-color: var(--line-hover); }
-
-  .mai-note {
-    color: var(--muted);
-    font-size: 12px;
-    margin: 8px 0 0;
-    max-width: 680px;
-  }
-
   .mai-venue.closed { opacity: 0.62; }
   .mai-venue.closed .mai-venue-name { text-decoration: line-through; }
 
@@ -156,16 +116,6 @@
     color: var(--muted);
     padding: 20px;
   }
-
-  .mai-help {
-    border-top: 1px solid var(--line);
-    color: var(--muted);
-    font-size: 13px;
-    margin-top: 26px;
-    padding-top: 18px;
-  }
-
-  .mai-help strong { color: var(--fg); font-weight: 600; }
 
   .mai-file { display: none; }
 
@@ -187,42 +137,24 @@
   </header>
 
   <h1 class="page-title">Mai Mai</h1>
-  <p class="page-lede">My Sydney venue list, using the NSW sheet as the canonical source when it conflicts with <strong>Maimai in SYD</strong>.</p>
+  <p class="page-lede">Sydney venues with maimai, grouped by operator and suburb.</p>
 
-  <details class="folder" open>
-    <summary class="folder-summary"><span class="dot"></span>Maimai in SYD<span class="folder-chev" aria-hidden="true">›</span></summary>
-    <div>
-      <div class="mai-toolbar">
-        <div class="mai-actions">
-          <a class="mai-button" href="https://www.google.com.au/maps/@-33.8357568,150.9004455,11z/data=!4m6!1m2!10m1!1e1!11m2!2sypAUN9j_BdFLVDnAWX0ltNFMs0emlQ!3e3?entry=ttu&amp;g_ep=EgoyMDI2MDgxNy4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">Open Google Maps list</a>
-          <a class="mai-button" href="/maimai/collections">Browse collection atlas</a>
-          <button class="mai-button primary" type="button" id="mai-export-json">Export JSON</button>
-          <button class="mai-button" type="button" id="mai-export-csv">Export CSV</button>
-          <label class="mai-button" for="mai-import">Import JSON / CSV<input class="mai-file" id="mai-import" type="file" accept=".json,.csv,application/json,text/csv"></label>
-        </div>
-        <label class="mai-filters" for="mai-filter">Show
-          <select class="mai-select" id="mai-filter">
-            <option value="all">All entries</option>
-            <option value="both">Both sources</option>
-            <option value="maps-only">Google Maps only</option>
-            <option value="sheet-only">Sheet only</option>
-            <option value="review">Needs review</option>
-          </select>
-        </label>
-      </div>
-
-      <p class="mai-source">Canonical source: <strong>maimaiAUS UPDATED CABS LIST (CiRCLE+)</strong>, NSW tab dated 23 July 2026. <a href="https://www.google.com.au/maps/@-33.8357568,150.9004455,11z/data=!4m6!1m2!10m1!1e1!11m2!2sypAUN9j_BdFLVDnAWX0ltNFMs0emlQ!3e3?entry=ttu&amp;g_ep=EgoyMDI2MDgxNy4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">Maimai in SYD</a> stays attached as a cross-check. Current official venue pages are used to verify names, locations, and arcade status, while the sheet and your confirmation determine whether a venue belongs in this list.</p>
-
-      <div class="mai-meta" aria-live="polite">
-        <span class="mai-pill" id="mai-count"></span>
-        <span class="mai-pill" id="mai-updated"></span>
-      </div>
-
-      <div class="mai-list" id="mai-list"></div>
-
-      <p class="mai-help"><strong>Updating it:</strong> this is a static site, so the page cannot silently read your private Google Maps account. Treat the NSW sheet as canonical when it differs from Maps. Imported changes stay in this browser until you export them again. Sheet rows that are not ticked remain labelled unless you confirm them.</p>
+  <div class="mai-toolbar">
+    <div class="mai-actions">
+      <a class="mai-button" href="https://www.google.com.au/maps/@-33.8357568,150.982843,12z/data=!4m6!1m2!10m1!1e1!11m2!2sypAUN9j_BdFLVDnAWX0ltNFMs0emlQ!3e3" target="_blank" rel="noopener">Shared Maps list ↗</a>
+      <a class="mai-button" href="/maimai/collections">Collection atlas</a>
+      <button class="mai-button primary" type="button" id="mai-export-json">JSON</button>
+      <button class="mai-button" type="button" id="mai-export-csv">CSV</button>
+      <label class="mai-button" for="mai-import">Import<input class="mai-file" id="mai-import" type="file" accept=".json,.csv,application/json,text/csv"></label>
     </div>
-  </details>
+  </div>
+
+  <div class="mai-meta" aria-live="polite">
+    <span class="mai-pill" id="mai-count"></span>
+    <span class="mai-pill" id="mai-updated"></span>
+  </div>
+
+  <div class="mai-list" id="mai-list"></div>
 
   <footer>
     <a href="/">Home</a>

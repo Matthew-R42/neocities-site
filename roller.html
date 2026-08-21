@@ -12,6 +12,43 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23111%22/><text x=%2250%22 y=%2270%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22700%22 font-size=%2262%22 fill=%22%23fff%22 text-anchor=%22middle%22>M</text></svg>">
 <link rel="stylesheet" href="style.css">
 <script src="theme.js" defer></script>
+<style>
+  .roller-map-card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    margin: 24px 0 30px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .roller-map-card:hover { border-color: var(--line-hover); }
+
+  .roller-map-card canvas {
+    background: var(--card);
+    display: block;
+    height: auto;
+    width: 100%;
+  }
+
+  .roller-map-label {
+    background: color-mix(in srgb, var(--card) 88%, transparent);
+    bottom: 42px;
+    color: var(--fg);
+    font-size: 12px;
+    left: 14px;
+    padding: 5px 8px;
+    position: absolute;
+  }
+
+  .roller-map-link {
+    color: var(--muted);
+    display: block;
+    font-size: 12px;
+    padding: 10px 14px 12px;
+  }
+
+  .roller-map-link strong { color: var(--fg); font-weight: 600; }
+</style>
 </head>
 <body>
 
@@ -24,6 +61,12 @@
 
   <h1 class="page-title">RollerMap</h1>
   <p class="page-lede">Rate street pavement quality block by block. 1 for glass, 5 for go around.</p>
+
+  <a class="roller-map-card" href="https://roller.mtw4244.work" target="_blank" rel="noopener" aria-label="Open RollerMap for Sydney">
+    <canvas id="roller-mini-map" width="900" height="360" role="img" aria-label="Small map of Sydney with RollerMap areas marked"></canvas>
+    <span class="roller-map-label">Sydney</span>
+    <span class="roller-map-link"><strong>Open the live map ↗</strong> · tap a block to rate it</span>
+  </a>
 
   <div class="prose">
     <p>
@@ -90,5 +133,77 @@
 
 </div>
 
+<script>
+  (() => {
+    const canvas = document.getElementById('roller-mini-map');
+    if (!canvas) return;
+    const context = canvas.getContext('2d');
+    const points = [
+      [-33.88, 151.20], [-33.81, 151.00], [-33.87, 151.10], [-33.86, 151.18],
+      [-33.85, 151.05], [-33.80, 151.18], [-33.74, 151.07], [-33.77, 151.11],
+      [-33.90, 151.10], [-33.92, 151.14], [-33.94, 151.24], [-33.76, 151.28],
+      [-33.89, 151.04], [-33.87, 151.01], [-33.86, 151.27], [-33.88, 150.99],
+    ];
+    const bounds = { minLat: -34.05, maxLat: -33.55, minLon: 150.55, maxLon: 151.38 };
+
+    function project(lat, lon, width, height) {
+      return [
+        ((lon - bounds.minLon) / (bounds.maxLon - bounds.minLon)) * width,
+        ((bounds.maxLat - lat) / (bounds.maxLat - bounds.minLat)) * height,
+      ];
+    }
+
+    function draw() {
+      const ratio = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth || 900;
+      const height = width * 0.4;
+      canvas.width = width * ratio;
+      canvas.height = height * ratio;
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      const styles = getComputedStyle(canvas);
+      const card = styles.getPropertyValue('--card').trim() || '#111';
+      const muted = styles.getPropertyValue('--muted').trim() || '#777';
+      const line = styles.getPropertyValue('--line').trim() || '#333';
+      const accent = styles.getPropertyValue('--fg').trim() || '#fff';
+      context.fillStyle = card;
+      context.fillRect(0, 0, width, height);
+
+      context.strokeStyle = line;
+      context.lineWidth = 1;
+      for (let x = -height; x < width + height; x += width / 9) {
+        context.beginPath();
+        context.moveTo(x, 0);
+        context.lineTo(x + height, height);
+        context.stroke();
+      }
+      for (let y = height * 0.18; y < height; y += height / 4) {
+        context.beginPath();
+        context.moveTo(0, y);
+        context.lineTo(width, y - height * 0.12);
+        context.stroke();
+      }
+
+      context.strokeStyle = muted;
+      context.lineWidth = 2;
+      context.beginPath();
+      [[-33.55,151.16],[-33.65,151.28],[-33.76,151.30],[-33.83,151.27],[-33.89,151.34],[-33.98,151.25],[-34.05,151.16]].forEach(([lat, lon], index) => {
+        const [x, y] = project(lat, lon, width, height);
+        index ? context.lineTo(x, y) : context.moveTo(x, y);
+      });
+      context.stroke();
+
+      context.fillStyle = accent;
+      points.forEach(([lat, lon]) => {
+        const [x, y] = project(lat, lon, width, height);
+        context.beginPath();
+        context.arc(x, y, 4, 0, Math.PI * 2);
+        context.fill();
+      });
+    }
+
+    new ResizeObserver(draw).observe(canvas);
+    draw();
+  })();
+</script>
 </body>
 </html>

@@ -1,9 +1,5 @@
-const MAI_STORAGE_KEY = 'maimai-sydney-list-v2';
-const MAI_UPDATED_KEY = 'maimai-sydney-list-updated-v2';
-const MAI_MAP_SOURCE_NAME = 'Maimai in SYD';
-const MAI_MAP_SOURCE_URL = 'https://www.google.com.au/maps/@-33.8357568,150.9004455,11z/data=!4m6!1m2!10m1!1e1!11m2!2sypAUN9j_BdFLVDnAWX0ltNFMs0emlQ!3e3?entry=ttu&g_ep=EgoyMDI2MDgxNy4wIKXMDSoASAFQAw%3D%3D';
-const MAI_SHEET_SOURCE_NAME = 'maimaiAUS UPDATED CABS LIST (CiRCLE+)';
-const MAI_SHEET_SOURCE_DATE = '2026-07-23';
+const MAI_STORAGE_KEY = 'maimai-sydney-list-v3';
+const MAI_UPDATED_KEY = 'maimai-sydney-list-updated-v3';
 const MAI_INITIAL_UPDATED = '2026-08-21T22:26:01+10:00';
 
 // The NSW sheet is canonical when it conflicts with Google Maps. Google Maps
@@ -14,17 +10,17 @@ const INITIAL_MAI_VENUES = [
   { operator: 'Koko Amusement', location: 'Hurstville', name: 'KOKO Amusement Hurstville', mapsName: 'KOKO Amusement Hurstville', sheetName: 'Hurstville', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Amusement centre', mapsRating: '4.8', mapsReviews: '548' },
   { operator: 'Koko Amusement', location: 'Hornsby', name: 'KOKO Amusement Hornsby', mapsName: 'KOKO Amusement Hornsby', sheetName: 'Hornsby', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Amusement centre', mapsRating: '4.9', mapsReviews: '328' },
   { operator: 'Koko Amusement', location: 'Haymarket', name: 'KOKO Amusement Haymarket', mapsName: 'KOKO Amusement Haymarket', sheetName: 'Haymarket', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Amusement centre', mapsRating: '4.9', mapsReviews: '388' },
-  { operator: 'Timezone / Zone Bowling', location: 'Haymarket', name: 'Timezone Market City', mapsName: 'Timezone Haymarket', sheetName: 'Market City', inMaps: true, inSheet: true, sheetChecked: true, matchNote: 'The sheet name is canonical. Current venue information identifies this as Timezone at Market City, Haymarket.', mapsCategory: 'Amusement centre', mapsRating: '4.5', mapsReviews: '2,092', officialSourceUrl: 'https://www.marketcity.com.au/timezone-now-open/' },
-  { operator: 'Timezone / Zone Bowling', location: 'Central Park', name: 'Timezone Central Park', mapsName: 'Timezone Central Park', sheetName: 'Central Park', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Video arcade', mapsRating: '4.7', mapsReviews: '850' },
-  { operator: 'Timezone / Zone Bowling', location: 'Macquarie Park', name: 'Timezone Macquarie', mapsName: 'Timezone Macquarie Park', sheetName: 'Macquarie', inMaps: true, inSheet: true, sheetChecked: true, matchNote: 'The sheet name is canonical. The current centre listing confirms Timezone at Macquarie Park.', mapsCategory: 'Video arcade', mapsRating: '4.4', mapsReviews: '974', officialSourceUrl: 'https://www.macquariecentre.com.au/stores/timezone' },
-  { operator: 'Timezone / Zone Bowling', location: 'Chatswood', name: 'Timezone Chatswood', mapsName: 'Timezone Chatswood', sheetName: 'Chatswood', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Amusement centre', mapsRating: '4.7', mapsReviews: '2,406' },
-  { operator: 'Timezone / Zone Bowling', location: 'Top Ryde', name: 'Timezone & Zone Bowling Top Ryde', mapsName: 'Timezone & Zone Bowling Top Ryde', sheetName: 'Top Ryde', inMaps: true, inSheet: true, sheetChecked: false, needsReview: true, matchNote: 'The current venue page confirms arcade games, but the sheet row is not ticked, so the maimai cabinet still needs confirmation.', mapsCategory: 'Amusement centre', mapsRating: '4.7', mapsReviews: '1,481', officialSourceUrl: 'https://www.timezonegames.com/en-au/venues/nsw/timezone-top-ryde/' },
-  { operator: 'Timezone / Zone Bowling', location: 'Parramatta', name: 'Timezone Parramatta', mapsName: 'Timezone Parramatta', sheetName: 'Parramatta', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Video arcade', mapsRating: '4.7', mapsReviews: '1,594' },
-  { operator: 'Timezone / Zone Bowling', location: 'Blacktown', name: 'Timezone & Zone Bowling Blacktown', mapsName: 'Timezone & Zone Bowling Blacktown', sheetName: 'Blacktown', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Ten Pin Bowling Alley', mapsRating: '4.6', mapsReviews: '1,787' },
-  { operator: 'Timezone / Zone Bowling', location: 'Villawood', name: 'Timezone & Zone Bowling Villawood', mapsName: 'Timezone & Zone Bowling Villawood', sheetName: 'Villawood', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Ten Pin Bowling Alley', mapsRating: '4.5', mapsReviews: '2,312' },
-  { operator: 'Timezone / Zone Bowling', location: 'Eastgardens', name: 'Timezone Eastgardens', mapsName: 'Timezone Eastgardens', sheetName: 'Eastgardens', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Video arcade', mapsRating: '4.9', mapsReviews: '96' },
-  { operator: 'Timezone / Zone Bowling', location: 'Bankstown', name: 'Timezone Bankstown', mapsName: 'Funland Bankstown Central', mapsSearchName: 'Timezone Bankstown', sheetName: 'Bankstown Central', inMaps: true, inSheet: true, sheetChecked: true, mapsSuperseded: true, matchNote: 'The NSW sheet is canonical here. Current Timezone and Bankstown Central pages confirm Timezone is open at Bankstown Central. The old Maps label was Funland.', mapsCategory: 'Arcade', officialSourceUrl: 'https://www.timezonegames.com/en-au/venues/nsw/timezone-bankstown/' },
-  { operator: 'Timezone / Zone Bowling', location: 'Erina', name: 'Timezone Erina', sheetName: 'Erina', inMaps: false, inSheet: true, sheetChecked: false, userConfirmed: true, matchNote: 'User-confirmed as a newly added maimai venue. TEEG says Timezone Erina opened on 22 May 2026 and has more than 90 games.', mapsCategory: 'Video arcade', officialSourceUrl: 'https://www.teeg.com/news/new-venues/central-coast-levels-up-with-timezone-at-erina-fair/' },
+  { operator: 'Timezone', location: 'Haymarket', name: 'Timezone Market City', mapsName: 'Timezone Haymarket', sheetName: 'Market City', inMaps: true, inSheet: true, sheetChecked: true, matchNote: 'The sheet name is canonical. Current venue information identifies this as Timezone at Market City, Haymarket.', mapsCategory: 'Amusement centre', mapsRating: '4.5', mapsReviews: '2,092', officialSourceUrl: 'https://www.marketcity.com.au/timezone-now-open/' },
+  { operator: 'Timezone', location: 'Central Park', name: 'Timezone Central Park', mapsName: 'Timezone Central Park', sheetName: 'Central Park', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Video arcade', mapsRating: '4.7', mapsReviews: '850' },
+  { operator: 'Timezone', location: 'Macquarie Park', name: 'Timezone Macquarie', mapsName: 'Timezone Macquarie Park', sheetName: 'Macquarie', inMaps: true, inSheet: true, sheetChecked: true, matchNote: 'The sheet name is canonical. The current centre listing confirms Timezone at Macquarie Park.', mapsCategory: 'Video arcade', mapsRating: '4.4', mapsReviews: '974', officialSourceUrl: 'https://www.macquariecentre.com.au/stores/timezone' },
+  { operator: 'Timezone', location: 'Chatswood', name: 'Timezone Chatswood', mapsName: 'Timezone Chatswood', sheetName: 'Chatswood', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Amusement centre', mapsRating: '4.7', mapsReviews: '2,406' },
+  { operator: 'Timezone', location: 'Top Ryde', name: 'Timezone & Zone Bowling Top Ryde', mapsName: 'Timezone & Zone Bowling Top Ryde', sheetName: 'Top Ryde', inMaps: true, inSheet: true, sheetChecked: false, needsReview: true, matchNote: 'The current venue page confirms arcade games, but the sheet row is not ticked, so the maimai cabinet still needs confirmation.', mapsCategory: 'Amusement centre', mapsRating: '4.7', mapsReviews: '1,481', officialSourceUrl: 'https://www.timezonegames.com/en-au/venues/nsw/timezone-top-ryde/' },
+  { operator: 'Timezone', location: 'Parramatta', name: 'Timezone Parramatta', mapsName: 'Timezone Parramatta', sheetName: 'Parramatta', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Video arcade', mapsRating: '4.7', mapsReviews: '1,594' },
+  { operator: 'Timezone', location: 'Blacktown', name: 'Timezone & Zone Bowling Blacktown', mapsName: 'Timezone & Zone Bowling Blacktown', sheetName: 'Blacktown', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Ten Pin Bowling Alley', mapsRating: '4.6', mapsReviews: '1,787' },
+  { operator: 'Timezone', location: 'Villawood', name: 'Timezone & Zone Bowling Villawood', mapsName: 'Timezone & Zone Bowling Villawood', sheetName: 'Villawood', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Ten Pin Bowling Alley', mapsRating: '4.5', mapsReviews: '2,312' },
+  { operator: 'Timezone', location: 'Eastgardens', name: 'Timezone Eastgardens', mapsName: 'Timezone Eastgardens', sheetName: 'Eastgardens', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Video arcade', mapsRating: '4.9', mapsReviews: '96' },
+  { operator: 'Timezone', location: 'Bankstown', name: 'Timezone Bankstown', mapsName: 'Funland Bankstown Central', mapsSearchName: 'Timezone Bankstown', sheetName: 'Bankstown Central', inMaps: true, inSheet: true, sheetChecked: true, mapsSuperseded: true, matchNote: 'The NSW sheet is canonical here. Current Timezone and Bankstown Central pages confirm Timezone is open at Bankstown Central. The old Maps label was Funland.', mapsCategory: 'Arcade', officialSourceUrl: 'https://www.timezonegames.com/en-au/venues/nsw/timezone-bankstown/' },
+  { operator: 'Timezone', location: 'Erina', name: 'Timezone Erina', sheetName: 'Erina', inMaps: false, inSheet: true, sheetChecked: false, userConfirmed: true, matchNote: 'User-confirmed as a newly added maimai venue. TEEG says Timezone Erina opened on 22 May 2026 and has more than 90 games.', mapsCategory: 'Video arcade', officialSourceUrl: 'https://www.teeg.com/news/new-venues/central-coast-levels-up-with-timezone-at-erina-fair/' },
   { operator: 'Kingpin', location: 'North Strathfield', name: 'Kingpin North Strathfield', mapsName: 'Kingpin North Strathfield', sheetName: 'Kingpin North Strathfield', inMaps: true, inSheet: true, sheetChecked: true, mapsCategory: 'Ten Pin Bowling Alley', mapsRating: '4.7', mapsReviews: '4,995' },
   { operator: 'Fortress', location: 'Chippendale', name: 'Fortress Sydney', sheetName: 'Fortress', inMaps: false, inSheet: true, sheetChecked: false, userConfirmed: true, matchNote: 'User-confirmed as a newly added maimai venue. Fortress lists its Sydney arcade at Central Park Mall, Level 2, 28 Broadway, Chippendale.', mapsCategory: 'Arcade', officialSourceUrl: 'https://fortress.games/locations' },
   { operator: 'Entertainment Park', location: 'Bankstown', name: 'Entertainment Park Bankstown', mapsName: 'Entertainment Park', sheetName: 'Entertainment Park Bankstown', inMaps: true, inSheet: true, sheetChecked: true, matchNote: 'The sheet name is canonical. The current venue site confirms arcade games at the Bankstown facility.', mapsCategory: 'Arcade and indoor entertainment', mapsRating: '4.4', mapsReviews: '1,463', officialSourceUrl: 'https://entertainmentpark.com.au/' },
@@ -35,7 +31,6 @@ const listEl = document.getElementById('mai-list');
 const countEl = document.getElementById('mai-count');
 const updatedEl = document.getElementById('mai-updated');
 const importEl = document.getElementById('mai-import');
-const filterEl = document.getElementById('mai-filter');
 
 function loadMaiVenues() {
   try {
@@ -70,35 +65,20 @@ function formatUpdated(isoDate) {
   }).format(date)} (Sydney)`;
 }
 
-function sourceStatus(venue) {
-  if (venue.inMaps && venue.inSheet) return 'both';
-  if (venue.inMaps) return 'maps-only';
-  return 'sheet-only';
-}
-
-function matchesFilter(venue, filter) {
-  if (filter === 'review') return Boolean(venue.needsReview);
-  return filter === 'all' || sourceStatus(venue) === filter;
-}
-
 function renderMaiVenues() {
   const venues = loadMaiVenues();
   if (!listEl) return;
 
-  const filter = filterEl?.value || 'all';
-  const visibleVenues = venues.filter((venue) => matchesFilter(venue, filter));
-  const mapsCount = venues.filter((venue) => venue.inMaps).length;
-  const sheetCount = venues.filter((venue) => venue.inSheet).length;
-  countEl.textContent = `${visibleVenues.length} shown of ${venues.length} entries · ${mapsCount} Maps · ${sheetCount} sheet rows`;
+  countEl.textContent = `${venues.length} venues`;
   updatedEl.textContent = formatUpdated(loadMaiUpdated());
 
-  if (visibleVenues.length === 0) {
-    listEl.innerHTML = '<p class="mai-empty">Nothing matches this filter.</p>';
+  if (venues.length === 0) {
+    listEl.innerHTML = '<p class="mai-empty">No venues yet.</p>';
     return;
   }
 
   const groups = new Map();
-  visibleVenues.forEach((venue) => {
+  venues.forEach((venue) => {
     const group = venue.operator || 'Other';
     if (!groups.has(group)) groups.set(group, []);
     groups.get(group).push(venue);
@@ -115,26 +95,12 @@ function renderMaiVenues() {
 }
 
 function renderVenue(venue) {
-  const badges = [];
-  if (venue.inMaps) badges.push('<span class="mai-badge">Google Maps</span>');
-  if (venue.inSheet) badges.push('<span class="mai-badge">NSW sheet</span>');
-  if (venue.inSheet) badges.push(`<span class="mai-badge">Sheet ${venue.sheetChecked ? 'ticked' : 'not ticked'}</span>`);
-  if (venue.needsReview) badges.push('<span class="mai-badge review">Needs review</span>');
-  if (venue.userConfirmed) badges.push('<span class="mai-badge">User confirmed</span>');
-  if (venue.closed) badges.push('<span class="mai-badge">Permanently closed</span>');
-
-  const mapDetail = venue.inMaps
-    ? (venue.mapsSuperseded ? `Maps label superseded: ${venue.mapsName}` : `${venue.mapsCategory || 'Venue'} · ${venue.mapsRating || 'No rating'} stars${venue.mapsReviews ? ` · ${venue.mapsReviews} reviews` : ''}`)
-    : 'No matching entry in the Google Maps list';
-  const mapLinkLabel = venue.inMaps ? 'Maps ↗' : 'Search Maps ↗';
   return `<article class="mai-venue${venue.closed ? ' closed' : ''}">
     <div>
       <div class="mai-venue-name">${escapeHtml(venue.name || 'Unnamed venue')}</div>
-      <div class="mai-venue-detail">${escapeHtml(venue.location || 'Location not recorded')} · ${escapeHtml(mapDetail)}</div>
-      <div class="mai-badges">${badges.join('')}</div>
-      ${venue.matchNote ? `<p class="mai-note">${escapeHtml(venue.matchNote)}</p>` : ''}
+      <div class="mai-venue-detail">${escapeHtml(venue.location || 'Location not recorded')}</div>
     </div>
-    <a class="mai-venue-link" href="${mapsSearchUrl(venue)}" target="_blank" rel="noopener">${mapLinkLabel}</a>
+    <a class="mai-venue-link" href="${mapsSearchUrl(venue)}" target="_blank" rel="noopener">Map ↗</a>
   </article>`;
 }
 
@@ -156,12 +122,8 @@ function downloadFile(filename, content, type) {
 
 function exportJson() {
   const payload = {
-    primarySource: MAI_MAP_SOURCE_NAME,
-    primarySourceUrl: MAI_MAP_SOURCE_URL,
-    crossCheckSource: MAI_SHEET_SOURCE_NAME,
-    crossCheckSourceDate: MAI_SHEET_SOURCE_DATE,
     updatedAt: loadMaiUpdated(),
-    venues: loadMaiVenues(),
+    venues: loadMaiVenues().map(({ name, operator, location }) => ({ name, operator, location })),
   };
   downloadFile('maimai-in-syd.json', JSON.stringify(payload, null, 2), 'application/json');
 }
@@ -172,7 +134,7 @@ function csvValue(value) {
 }
 
 function exportCsv() {
-  const headers = ['name', 'operator', 'location', 'mapsName', 'mapsSearchName', 'sheetName', 'inMaps', 'inSheet', 'sheetChecked', 'needsReview', 'userConfirmed', 'mapsSuperseded', 'matchNote', 'mapsCategory', 'mapsRating', 'mapsReviews', 'officialSourceUrl', 'closed'];
+  const headers = ['name', 'operator', 'location'];
   const rows = [headers];
   for (const venue of loadMaiVenues()) {
     rows.push(headers.map((header) => venue[header] === true ? 'true' : venue[header] === false ? 'false' : venue[header] || ''));
@@ -256,7 +218,6 @@ async function importMaiFile(file) {
 
 document.getElementById('mai-export-json')?.addEventListener('click', exportJson);
 document.getElementById('mai-export-csv')?.addEventListener('click', exportCsv);
-filterEl?.addEventListener('change', renderMaiVenues);
 importEl?.addEventListener('change', async () => {
   const file = importEl.files?.[0];
   if (!file) return;
