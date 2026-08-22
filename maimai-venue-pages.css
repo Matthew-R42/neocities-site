@@ -117,6 +117,7 @@
 .mai-au-map-popup { display: grid; gap: 3px; min-width: 130px; }
 .mai-au-map-popup strong { font-size: 13px; }
 .mai-au-map-popup span { color: #5f6368; font-size: 12px; }
+.mai-au-map-popup a { color: #1f5fae; font-size: 12px; margin-top: 3px; }
 
 .mai-au-region {
   background: var(--card);

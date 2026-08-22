@@ -218,6 +218,11 @@ function addMaiAustraliaMapKey(map) {
   key.addTo(map);
 }
 
+function maiAustraliaMapsSearchUrl(state, operator, location) {
+  const query = [operator, location, state.label, 'Australia'].filter(Boolean).join(', ');
+  return `https://www.google.com.au/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
 function renderMaiAustraliaMap(state) {
   const mapTarget = document.getElementById('mai-au-map');
   if (!mapTarget || !window.L) return;
@@ -241,7 +246,7 @@ function renderMaiAustraliaMap(state) {
       iconSize: [14, 14],
     });
     const marker = window.L.marker(coordinates, { icon });
-    marker.bindPopup(`<div class="mai-au-map-popup"><strong>${escapeMaiAustraliaHtml(operator)}</strong><span>${escapeMaiAustraliaHtml(location)}</span></div>`);
+    marker.bindPopup(`<div class="mai-au-map-popup"><strong>${escapeMaiAustraliaHtml(operator)}</strong><span>${escapeMaiAustraliaHtml(location)}</span><a href="${maiAustraliaMapsSearchUrl(state, operator, location)}" target="_blank" rel="noopener">Open in Google Maps ↗</a></div>`);
     marker.addTo(markers);
   });
 
