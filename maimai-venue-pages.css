@@ -50,6 +50,47 @@
 
 .mai-au-regions { display: grid; gap: 18px; }
 
+.mai-au-map-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin: 0 0 18px;
+  overflow: hidden;
+}
+
+.mai-au-map-heading { padding: 14px 16px; }
+
+.mai-au-map-heading h2 {
+  font-size: 14px;
+  font-weight: 620;
+  margin: 0;
+}
+
+.mai-au-map {
+  background: #dfe7e8;
+  height: min(62vh, 620px);
+  min-height: 360px;
+}
+
+.mai-au-map-marker {
+  background: #101010;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 5px rgb(0 0 0 / 35%);
+  display: block;
+  height: 14px;
+  width: 14px;
+}
+
+.mai-au-map-marker.koko { background: #cb4c2f; }
+.mai-au-map-marker.timezone { background: #2369d6; }
+.mai-au-map-marker.other { background: #7245c5; }
+
+.leaflet-popup-content { font-family: inherit; }
+.mai-au-map-popup { display: grid; gap: 3px; min-width: 130px; }
+.mai-au-map-popup strong { font-size: 13px; }
+.mai-au-map-popup span { color: #5f6368; font-size: 12px; }
+
 .mai-au-region {
   background: var(--card);
   border: 1px solid var(--line);
@@ -101,4 +142,8 @@
   border-radius: 999px;
   font-size: 13px;
   padding: 5px 9px;
+}
+
+@media (max-width: 520px) {
+  .mai-au-map { height: 54vh; min-height: 320px; }
 }

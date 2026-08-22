@@ -93,6 +93,39 @@ const MAI_AUSTRALIA_STATES = [
   },
 ];
 
+const MAI_AUSTRALIA_COORDINATES = {
+  'qld|Timezone|Garden City': [-27.5627223, 153.0821246],
+  'qld|Timezone|Indooroopilly': [-27.5006234, 152.9721682],
+  'qld|Timezone|Surfers Paradise': [-28.0026102, 153.4297351],
+  'qld|Funhouse|CBD': [-27.4696588, 153.0252343],
+  'qld|Funhouse|Sunnybank': [-27.5701831, 153.0624566],
+  'qld|Kingpin|Chermside': [-27.3829083, 153.0321907],
+  'sa|Timezone|Tea Tree Plaza': [-34.8320200, 138.6912310],
+  'sa|Paradigm Zone|Adelaide': [-34.9228351, 138.6025993],
+  'sa|Amuse|Adelaide': [-34.9294947, 138.5978223],
+  'vic|Kingpin|Crown': [-37.8233316, 144.9582858],
+  'vic|Kingpin|Melbourne': [-37.8100038, 144.9625690],
+  'vic|Roller One|Burwood': [-37.8489865, 145.1363511],
+  'vic|Archie Brothers|Glen Waverley': [-37.8763923, 145.1651373],
+  'vic|Archie Brothers|QV': [-37.8106756, 144.9657069],
+  'vic|Fortress|Emporium': [-37.8124148, 144.9639161],
+  'vic|B. Lucky & Sons|Melbourne Central': [-37.8100038, 144.9625690],
+  'vic|PLAYiT|Southgate': [-37.8202314, 144.9656609],
+  'vic|iPlay|Frankston': [-38.1418128, 145.1238221],
+  'vic|Zone Bowling|Southland': [-37.9580793, 145.0533569],
+  'vic|Timezone|Eastland': [-37.8132401, 145.2290681],
+  'vic|Timezone|Highpoint': [-37.7732838, 144.8888020],
+  'vic|Timezone|Knox': [-37.8687841, 145.2412368],
+  'vic|Timezone|Northland': [-37.7385554, 145.0299301],
+  'vic|Timezone|Werribee': [-37.8746735, 144.6797716],
+  'act|Kingpin|Canberra': [-35.2799986, 149.1341290],
+  'act|Timezone|Woden': [-35.3463146, 149.0857874],
+  'wa|Varsity|Waterford': [-32.0159020, 115.8817450],
+  'wa|iPlay|Carousel': [-32.0188099, 115.9376632],
+  'wa|Timezone|Northbridge': [-31.9478509, 115.8575464],
+  'wa|Timezone|Fremantle': [-32.0559654, 115.7495795],
+};
+
 const maiAustraliaStateKey = document.body.dataset.maimaiState || 'australia';
 const maiAustraliaCurrentState = MAI_AUSTRALIA_STATES.find(({ key }) => key === maiAustraliaStateKey);
 const maiAustraliaContent = document.getElementById('mai-au-content');
@@ -134,6 +167,7 @@ function renderMaiAustraliaNav() {
 }
 
 function renderMaiAustraliaMaster() {
+  if (!maiAustraliaContent) return;
   const total = MAI_AUSTRALIA_STATES.reduce((sum, state) => sum + state.venues.length, 0);
   document.title = `Mai Mai venues in Australia - mtw4244.work`;
   document.getElementById('mai-au-title').textContent = 'Mai Mai venues in Australia';
@@ -162,12 +196,56 @@ function renderMaiAustraliaMaster() {
   `;
 }
 
+function maiAustraliaMarkerClass(operator) {
+  if (operator === 'Timezone' || operator === 'Timezone / Zone Bowling') return 'timezone';
+  if (operator === 'Koko Amusement') return 'koko';
+  return 'other';
+}
+
+function renderMaiAustraliaMap(state) {
+  const mapTarget = document.getElementById('mai-au-map');
+  if (!mapTarget || !window.L) return;
+
+  const map = window.L.map(mapTarget, { minZoom: 4, maxZoom: 19, scrollWheelZoom: true });
+  window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  }).addTo(map);
+
+  const markers = window.L.featureGroup();
+  state.venues.forEach(([operator, location]) => {
+    const coordinates = MAI_AUSTRALIA_COORDINATES[`${state.key}|${operator}|${location}`];
+    if (!coordinates) return;
+
+    const icon = window.L.divIcon({
+      className: '',
+      html: `<span class="mai-au-map-marker ${maiAustraliaMarkerClass(operator)}"></span>`,
+      iconAnchor: [7, 7],
+      iconSize: [14, 14],
+    });
+    const marker = window.L.marker(coordinates, { icon });
+    marker.bindPopup(`<div class="mai-au-map-popup"><strong>${escapeMaiAustraliaHtml(operator)}</strong><span>${escapeMaiAustraliaHtml(location)}</span></div>`);
+    marker.addTo(markers);
+  });
+
+  markers.addTo(map);
+  const bounds = markers.getBounds();
+  if (bounds.isValid()) map.fitBounds(bounds.pad(0.12), { maxZoom: 13 });
+}
+
 function renderMaiAustraliaState() {
-  if (!maiAustraliaCurrentState) return;
+  if (!maiAustraliaCurrentState || !maiAustraliaContent) return;
   document.title = `${maiAustraliaCurrentState.label} Mai Mai venues - mtw4244.work`;
   document.getElementById('mai-au-title').textContent = `${maiAustraliaCurrentState.label} venues`;
   document.getElementById('mai-au-lede').textContent = `${maiAustraliaCurrentState.venues.length} venues.`;
-  maiAustraliaContent.innerHTML = `<div class="mai-au-regions"><section class="mai-au-region">${renderMaiAustraliaVenueGroups(maiAustraliaCurrentState.venues)}</section></div>`;
+  maiAustraliaContent.innerHTML = `
+    <section class="mai-au-map-card" aria-labelledby="mai-au-map-title">
+      <div class="mai-au-map-heading"><h2 id="mai-au-map-title">Venue map</h2></div>
+      <div class="mai-au-map" id="mai-au-map" role="region" aria-label="Interactive map of ${escapeMaiAustraliaHtml(maiAustraliaCurrentState.label)} Mai Mai venues"></div>
+    </section>
+    <div class="mai-au-regions"><section class="mai-au-region">${renderMaiAustraliaVenueGroups(maiAustraliaCurrentState.venues)}</section></div>
+  `;
+  renderMaiAustraliaMap(maiAustraliaCurrentState);
 }
 
 renderMaiAustraliaNav();
