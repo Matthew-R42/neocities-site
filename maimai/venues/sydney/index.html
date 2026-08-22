@@ -14,8 +14,65 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23111%22/><text x=%2250%22 y=%2270%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22700%22 font-size=%2262%22 fill=%22%23fff%22 text-anchor=%22middle%22>M</text></svg>">
 <link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <script src="/theme.js" defer></script>
 <style>
+  .mai-map-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    margin: 24px 0;
+    overflow: hidden;
+  }
+
+  .mai-map-heading {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 14px 16px;
+  }
+
+  .mai-map-heading h2 {
+    font-size: 14px;
+    font-weight: 620;
+    margin: 0;
+  }
+
+  .mai-map-link {
+    color: var(--muted);
+    font-size: 13px;
+    text-decoration: none;
+  }
+
+  .mai-map-link:hover { color: var(--fg); }
+
+  #mai-map {
+    background: #dfe7e8;
+    height: min(62vh, 620px);
+    min-height: 360px;
+  }
+
+  .mai-map-marker {
+    background: #101010;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 5px rgb(0 0 0 / 35%);
+    display: block;
+    height: 14px;
+    width: 14px;
+  }
+
+  .mai-map-marker.koko { background: #cb4c2f; }
+  .mai-map-marker.timezone { background: #2369d6; }
+  .mai-map-marker.other { background: #7245c5; }
+
+  .leaflet-popup-content { font-family: inherit; }
+  .mai-map-popup { display: grid; gap: 3px; min-width: 150px; }
+  .mai-map-popup strong { font-size: 13px; }
+  .mai-map-popup span { color: #5f6368; font-size: 12px; }
+  .mai-map-popup a { color: #1f5fae; font-size: 12px; margin-top: 3px; }
+
   .mai-toolbar {
     display: flex;
     align-items: center;
@@ -120,6 +177,7 @@
   .mai-file { display: none; }
 
   @media (max-width: 520px) {
+    #mai-map { height: 54vh; min-height: 320px; }
     .mai-venue { align-items: flex-start; }
     .mai-venue-link { padding-top: 2px; }
   }
@@ -139,9 +197,16 @@
   <h1 class="page-title">Mai Mai</h1>
   <p class="page-lede">Sydney venues with maimai, grouped by operator and suburb.</p>
 
+  <section class="mai-map-card" aria-labelledby="mai-map-title">
+    <div class="mai-map-heading">
+      <h2 id="mai-map-title">Venue map</h2>
+      <a class="mai-map-link" href="https://www.google.com.au/maps/@-33.8357568,150.982843,12z/data=!4m7!1m3!11m2!2sNViyBJiVo5cs19aBi0fN3A!3e3!11m2!2sNViyBJiVo5cs19aBi0fN3A!3e3" target="_blank" rel="noopener">Google Maps list ↗</a>
+    </div>
+    <div id="mai-map" role="region" aria-label="Interactive map of Sydney Mai Mai venues"></div>
+  </section>
+
   <div class="mai-toolbar">
     <div class="mai-actions">
-      <a class="mai-button" href="https://www.google.com.au/maps/@-33.8357568,150.982843,12z/data=!4m7!1m3!11m2!2sNViyBJiVo5cs19aBi0fN3A!3e3!11m2!2sNViyBJiVo5cs19aBi0fN3A!3e3" target="_blank" rel="noopener">Shared Maps list ↗</a>
       <button class="mai-button primary" type="button" id="mai-export-json">JSON</button>
       <button class="mai-button" type="button" id="mai-export-csv">CSV</button>
       <label class="mai-button" for="mai-import">Import<input class="mai-file" id="mai-import" type="file" accept=".json,.csv,application/json,text/csv"></label>
@@ -163,6 +228,7 @@
 
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="/maimai.js"></script>
 </body>
 </html>

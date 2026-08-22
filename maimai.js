@@ -2,6 +2,29 @@ const MAI_STORAGE_KEY = 'maimai-sydney-list-v3';
 const MAI_UPDATED_KEY = 'maimai-sydney-list-updated-v3';
 const MAI_INITIAL_UPDATED = '2026-08-21T22:26:01+10:00';
 
+const MAI_VENUE_COORDINATES = {
+  'KOKO Amusement Burwood': [-33.8745274, 151.1059019],
+  'KOKO Amusement Town Hall': [-33.8753995, 151.2065852],
+  'KOKO Amusement Hurstville': [-33.9668867, 151.1032234],
+  'KOKO Amusement Hornsby': [-33.7031621, 151.1023451],
+  'KOKO Amusement Haymarket': [-33.8798470, 151.2034354],
+  'Timezone Market City': [-33.8798470, 151.2034354],
+  'Timezone Central Park': [-33.8846058, 151.2007392],
+  'Timezone Macquarie': [-33.7771478, 151.1212822],
+  'Timezone Chatswood': [-33.7969658, 151.1836331],
+  'Timezone & Zone Bowling Top Ryde': [-33.8124512, 151.1065649],
+  'Timezone Parramatta': [-33.8178049, 151.0020864],
+  'Timezone & Zone Bowling Blacktown': [-33.7702873, 150.9060627],
+  'Timezone & Zone Bowling Villawood': [-33.8791127, 150.9776592],
+  'Timezone Eastgardens': [-33.9447720, 151.2243301],
+  'Timezone Bankstown': [-33.9171983, 151.0405380],
+  'Timezone Erina': [-33.4375327, 151.3924504],
+  'Kingpin North Strathfield': [-33.8634157, 151.0890477],
+  'Fortress Sydney': [-33.8846058, 151.2007392],
+  'Entertainment Park Bankstown': [-33.9284233, 150.9903746],
+  'iPlay Ten Pin City Lidcombe': [-33.8494177, 151.0487593],
+};
+
 // The NSW sheet is canonical when it conflicts with Google Maps. Google Maps
 // entries are retained as a cross-check, including stale labels and naming differences.
 const INITIAL_MAI_VENUES = [
@@ -31,6 +54,9 @@ const listEl = document.getElementById('mai-list');
 const countEl = document.getElementById('mai-count');
 const updatedEl = document.getElementById('mai-updated');
 const importEl = document.getElementById('mai-import');
+const mapEl = document.getElementById('mai-map');
+let maiMap;
+let maiMapMarkers;
 
 function loadMaiVenues() {
   try {
@@ -92,6 +118,45 @@ function renderMaiVenues() {
       </div>
     </section>
   `).join('');
+}
+
+function markerClass(venue) {
+  if (venue.operator === 'Koko Amusement') return 'koko';
+  if (venue.operator === 'Timezone') return 'timezone';
+  return 'other';
+}
+
+function renderMaiMap() {
+  if (!mapEl || !window.L) return;
+
+  if (!maiMap) {
+    maiMap = window.L.map(mapEl, { minZoom: 8, maxZoom: 19, scrollWheelZoom: true });
+    window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }).addTo(maiMap);
+  }
+
+  if (maiMapMarkers) maiMapMarkers.clearLayers();
+  maiMapMarkers = window.L.featureGroup();
+
+  loadMaiVenues().forEach((venue) => {
+    const coordinates = MAI_VENUE_COORDINATES[venue.name];
+    if (!coordinates) return;
+    const icon = window.L.divIcon({
+      className: '',
+      html: `<span class="mai-map-marker ${markerClass(venue)}"></span>`,
+      iconAnchor: [7, 7],
+      iconSize: [14, 14],
+    });
+    const marker = window.L.marker(coordinates, { icon });
+    marker.bindPopup(`<div class="mai-map-popup"><strong>${escapeHtml(venue.name)}</strong><span>${escapeHtml(venue.location)}</span><a href="${mapsSearchUrl(venue)}" target="_blank" rel="noopener">Open in Google Maps ↗</a></div>`);
+    marker.addTo(maiMapMarkers);
+  });
+
+  maiMapMarkers.addTo(maiMap);
+  const bounds = maiMapMarkers.getBounds();
+  if (bounds.isValid()) maiMap.fitBounds(bounds.pad(0.08), { maxZoom: 11 });
 }
 
 function renderVenue(venue) {
@@ -214,6 +279,7 @@ async function importMaiFile(file) {
   if (!venues.length) throw new Error('No venue names were found in that file.');
   saveMaiVenues(venues);
   renderMaiVenues();
+  renderMaiMap();
 }
 
 document.getElementById('mai-export-json')?.addEventListener('click', exportJson);
@@ -231,3 +297,4 @@ importEl?.addEventListener('change', async () => {
 });
 
 renderMaiVenues();
+renderMaiMap();
