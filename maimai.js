@@ -126,6 +126,22 @@ function markerClass(venue) {
   return 'other';
 }
 
+function addMaiMapKey(map) {
+  const key = window.L.control({ position: 'bottomleft' });
+  key.onAdd = () => {
+    const element = document.createElement('div');
+    element.className = 'mai-map-key leaflet-control';
+    element.setAttribute('aria-label', 'Venue map key');
+    element.innerHTML = `
+      <span><i class="mai-map-key-dot koko"></i>Koko Amusement</span>
+      <span><i class="mai-map-key-dot timezone"></i>Timezone / Zone Bowling</span>
+      <span><i class="mai-map-key-dot other"></i>Other venues</span>
+    `;
+    return element;
+  };
+  key.addTo(map);
+}
+
 function renderMaiMap() {
   if (!mapEl || !window.L) return;
 
@@ -135,6 +151,7 @@ function renderMaiMap() {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 19,
     }).addTo(maiMap);
+    addMaiMapKey(maiMap);
   }
 
   if (maiMapMarkers) maiMapMarkers.clearLayers();

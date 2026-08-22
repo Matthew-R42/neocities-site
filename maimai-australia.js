@@ -197,9 +197,25 @@ function renderMaiAustraliaMaster() {
 }
 
 function maiAustraliaMarkerClass(operator) {
-  if (operator === 'Timezone' || operator === 'Timezone / Zone Bowling') return 'timezone';
+  if (operator === 'Timezone' || operator === 'Timezone / Zone Bowling' || operator === 'Zone Bowling') return 'timezone';
   if (operator === 'Koko Amusement') return 'koko';
   return 'other';
+}
+
+function addMaiAustraliaMapKey(map) {
+  const key = window.L.control({ position: 'bottomleft' });
+  key.onAdd = () => {
+    const element = document.createElement('div');
+    element.className = 'mai-map-key leaflet-control';
+    element.setAttribute('aria-label', 'Venue map key');
+    element.innerHTML = `
+      <span><i class="mai-map-key-dot koko"></i>Koko Amusement</span>
+      <span><i class="mai-map-key-dot timezone"></i>Timezone / Zone Bowling</span>
+      <span><i class="mai-map-key-dot other"></i>Other venues</span>
+    `;
+    return element;
+  };
+  key.addTo(map);
 }
 
 function renderMaiAustraliaMap(state) {
@@ -211,6 +227,7 @@ function renderMaiAustraliaMap(state) {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19,
   }).addTo(map);
+  addMaiAustraliaMapKey(map);
 
   const markers = window.L.featureGroup();
   state.venues.forEach(([operator, location]) => {
