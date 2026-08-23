@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="style.css">
 <script src="theme.js" defer></script>
 <script src="site.js" defer></script>
+<script src="daily-games.js" defer></script>
 </head>
 <body>
 
@@ -49,6 +50,7 @@
     <a href="#projects">Projects</a>
     <a href="#single-player">Single-player games</a>
     <a href="#multiplayer">Multiplayer games</a>
+    <a href="#daily-games">Daily games</a>
   </nav>
 
   <div class="index-tools">
@@ -200,6 +202,44 @@
         </div>
       </a>
 
+    </div>
+  </details>
+
+  <details class="folder" id="daily-games">
+    <summary class="folder-summary"><span class="dot"></span>Daily games<span class="folder-chev" aria-hidden="true">›</span></summary>
+
+    <div class="daily" id="daily-games-app">
+      <p class="daily-intro">
+        Other people's daily puzzles, not mine. The list is editable and lives in
+        this browser only. Drag a game across to the shortlist, or use the arrow
+        on its row.
+      </p>
+
+      <div class="daily-cols">
+
+        <section class="daily-col">
+          <h3 class="daily-head">Daily games</h3>
+          <ul class="daily-list" data-drop="daily"></ul>
+
+          <form class="daily-add" data-act="add">
+            <input class="daily-input" name="name" type="text" placeholder="Game name" maxlength="60" aria-label="New game name" required>
+            <input class="daily-input" name="url" type="text" inputmode="url" placeholder="https://" maxlength="300" aria-label="New game link">
+            <button class="daily-btn daily-btn-text" type="submit">Add</button>
+          </form>
+
+          <button class="daily-reset" type="button" data-act="reset">Reset to the starting ten</button>
+        </section>
+
+        <section class="daily-col">
+          <h3 class="daily-head">
+            Ones I want to do
+            <span class="daily-progress" data-progress aria-live="polite"></span>
+          </h3>
+          <ul class="daily-list daily-list-todo" data-drop="todo"></ul>
+          <p class="daily-empty" data-todo-empty>Drop a game here to give it a checkbox. Tick them all off and something happens.</p>
+        </section>
+
+      </div>
     </div>
   </details>
 

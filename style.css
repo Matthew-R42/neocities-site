@@ -522,3 +522,218 @@ footer a:hover { color: var(--fg); }
     margin: 10px 18px 32px;
   }
 }
+
+/* ---------- daily games (homepage folder, daily-games.js) ---------- */
+.daily { padding: 18px 4px 0; }
+
+.daily-intro {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 14.5px;
+  max-width: 62ch;
+}
+
+.daily-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.daily-col {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 18px;
+}
+
+.daily-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 640;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.daily-progress {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 570;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--dim);
+}
+
+.daily-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-height: 54px;
+  border-radius: 10px;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.daily-list.is-dropzone {
+  background: color-mix(in srgb, var(--fg) 6%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line-hover);
+}
+
+.daily-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.daily-row:last-child { border-bottom: none; }
+
+.daily-row.is-dragging { opacity: 0.4; }
+
+.daily-grip {
+  color: var(--dim);
+  cursor: grab;
+  font-size: 14px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.daily-row:active .daily-grip { cursor: grabbing; }
+
+.daily-check {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  accent-color: var(--fg);
+  cursor: pointer;
+}
+
+.daily-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.daily-link {
+  color: var(--fg);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 570;
+  border-bottom: 1px solid transparent;
+}
+
+.daily-link:hover { border-bottom-color: var(--line-hover); }
+
+.daily-link-none { color: var(--muted); }
+
+.daily-host { color: var(--dim); font-size: 12px; }
+
+.daily-row.is-done .daily-link { color: var(--dim); text-decoration: line-through; }
+.daily-row.is-done .daily-host { opacity: 0.6; }
+
+.daily-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+}
+
+.daily-row:hover .daily-actions,
+.daily-row:focus-within .daily-actions { opacity: 1; }
+
+.daily-btn {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.daily-btn:hover { border-color: var(--line-hover); color: var(--fg); }
+
+.daily-btn-text {
+  border-color: var(--line);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+}
+
+.daily-edit {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.daily-edit-actions { display: flex; gap: 6px; margin-left: auto; }
+
+.daily-input {
+  flex: 1 1 130px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 13px;
+}
+
+.daily-input::placeholder { color: var(--dim); }
+.daily-input:hover { border-color: var(--line-hover); }
+
+.daily-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.daily-reset {
+  margin-top: 12px;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--dim);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.daily-reset:hover { color: var(--muted); }
+
+.daily-empty {
+  margin: 10px 0 0;
+  color: var(--dim);
+  font-size: 13px;
+}
+
+.daily-empty[hidden] { display: none; }
+
+.daily-confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.daily-row[hidden] { display: none; }
