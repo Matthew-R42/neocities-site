@@ -1,9 +1,8 @@
-/* Daily games + "Ones I want to do".
-   Two lists on the homepage: an editable list of links, and a drag-across
-   shortlist with checkboxes. Everything lives in localStorage, so it is
-   per-browser only, same as the rest of the site's state. */
+/* /daily — two lists of other people's daily puzzles.
+   Left is everything, right is what I picked for today. Both live in
+   localStorage, per browser, same as the rest of the site's state. */
 (() => {
-  const root = document.getElementById('daily-games-app');
+  const root = document.getElementById('daily-app');
   if (!root) return;
 
   const KEY = 'daily_games_v1';
@@ -58,7 +57,7 @@
       doneDate: typeof raw.doneDate === 'string' ? raw.doneDate : today(),
     };
 
-    // Ticks are for today only. A new day starts the shortlist over.
+    // Ticks are for one day only. A new day starts the shortlist over.
     if (state.doneDate !== today()) {
       state.done = {};
       state.doneDate = today();
@@ -70,26 +69,39 @@
     try {
       localStorage.setItem(KEY, JSON.stringify(state));
     } catch {
-      /* private browsing, quota, etc. The page still works for this session. */
+      /* private browsing or a full quota. The page still works this session. */
     }
   }
 
   let state = load();
-  let editingId = null;
+  let editing = false;
+  let renamingId = null;
   let celebrated = false;
-
-  // ---------- rendering ----------
 
   const dailyList = root.querySelector('[data-drop="daily"]');
   const todoList = root.querySelector('[data-drop="todo"]');
   const progressEl = root.querySelector('[data-progress]');
-  const emptyEl = root.querySelector('[data-todo-empty]');
+  const barEl = root.querySelector('[data-bar]');
+  const dateEl = root.querySelector('[data-date]');
+  const addForm = root.querySelector('[data-act="add"]');
+  const editBtn = root.querySelector('[data-act="edit-mode"]');
+  const emptyDaily = root.querySelector('[data-empty-daily]');
+  const emptyTodo = root.querySelector('[data-empty-todo]');
+  const countDaily = root.querySelector('[data-count-daily]');
+  const countTodo = root.querySelector('[data-count-todo]');
+
+  dateEl.textContent = new Date().toLocaleDateString('en-AU', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+
+  // ---------- helpers ----------
 
   function tidyUrl(url) {
     const trimmed = url.trim();
     if (!trimmed) return '';
-    if (/^https?:\/\//i.test(trimmed)) return trimmed;
-    return `https://${trimmed}`;
+    return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
   }
 
   function hostOf(url) {
@@ -100,129 +112,178 @@
     }
   }
 
-  function rowFor(item) {
-    const li = document.createElement('li');
-    li.className = 'daily-row';
-    li.dataset.id = item.id;
-    li.dataset.dailyRow = '';
-    li.draggable = editingId !== item.id;
-
-    if (editingId === item.id) {
-      li.classList.add('is-editing');
-      li.innerHTML = `
-        <form class="daily-edit" data-act="save">
-          <input class="daily-input" name="name" type="text" aria-label="Game name" maxlength="60" required>
-          <input class="daily-input" name="url" type="text" inputmode="url" aria-label="Link" maxlength="300" placeholder="https://">
-          <div class="daily-edit-actions">
-            <button class="daily-btn daily-btn-text" type="submit">Save</button>
-            <button class="daily-btn daily-btn-text" type="button" data-act="cancel">Cancel</button>
-          </div>
-        </form>`;
-      li.querySelector('[name="name"]').value = item.name;
-      li.querySelector('[name="url"]').value = item.url;
-      return li;
-    }
-
-    const host = hostOf(item.url);
-    const isTodo = item.list === 'todo';
-    const checked = isTodo && state.done[item.id];
-
-    li.innerHTML = `
-      <span class="daily-grip" aria-hidden="true">⠿</span>
-      ${isTodo ? `<input class="daily-check" type="checkbox" data-act="check" ${checked ? 'checked' : ''} aria-label="Done today">` : ''}
-      <span class="daily-name">
-        ${item.url
-          ? `<a class="daily-link" href="${escapeAttr(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.name)}</a>`
-          : `<span class="daily-link daily-link-none">${escapeHtml(item.name)}</span>`}
-        ${host ? `<span class="daily-host">${escapeHtml(host)}</span>` : ''}
-      </span>
-      <span class="daily-actions">
-        <button class="daily-btn" type="button" data-act="move" aria-label="${isTodo ? `Move ${escapeAttr(item.name)} back to daily games` : `Move ${escapeAttr(item.name)} to ones I want to do`}" title="${isTodo ? 'Move back' : 'Move across'}">${isTodo ? '←' : '→'}</button>
-        <button class="daily-btn" type="button" data-act="edit" aria-label="Edit ${escapeAttr(item.name)}" title="Edit">✎</button>
-        <button class="daily-btn" type="button" data-act="del" aria-label="Remove ${escapeAttr(item.name)}" title="Remove">✕</button>
-      </span>`;
-
-    if (checked) li.classList.add('is-done');
-    return li;
-  }
-
   function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  }
-
-  const escapeAttr = escapeHtml;
-
-  function render() {
-    dailyList.textContent = '';
-    todoList.textContent = '';
-
-    state.items.forEach((item) => {
-      (item.list === 'todo' ? todoList : dailyList).appendChild(rowFor(item));
-    });
-
-    updateProgress();
-
-    const focus = root.querySelector('.is-editing [name="name"]');
-    if (focus) focus.focus();
-
-    document.dispatchEvent(new CustomEvent('daily-games:render'));
-  }
-
-  function updateProgress() {
-    const todo = state.items.filter((it) => it.list === 'todo');
-    const done = todo.filter((it) => state.done[it.id]).length;
-
-    progressEl.textContent = todo.length ? `${done}/${todo.length} done today` : '';
-    emptyEl.hidden = todo.length > 0;
-
-    // Re-arm the celebration once the shortlist is no longer fully ticked.
-    if (todo.length === 0 || done < todo.length) celebrated = false;
   }
 
   function itemById(id) {
     return state.items.find((it) => it.id === id);
   }
 
+  // ---------- rendering ----------
+
+  function renameRow(item) {
+    const li = document.createElement('li');
+    li.className = 'drow drow-renaming';
+    li.dataset.id = item.id;
+    li.innerHTML = `
+      <form class="drow-edit" data-act="rename">
+        <input class="daily-input" name="name" type="text" aria-label="Game name" maxlength="60" required>
+        <input class="daily-input" name="url" type="text" inputmode="url" aria-label="Link" maxlength="300" placeholder="https://">
+        <div class="drow-edit-actions">
+          <button class="btn-outline daily-add-btn" type="submit">Save</button>
+          <button class="drow-btn" type="button" data-act="cancel" aria-label="Cancel">✕</button>
+        </div>
+      </form>`;
+    li.querySelector('[name="name"]').value = item.name;
+    li.querySelector('[name="url"]').value = item.url;
+    return li;
+  }
+
+  function row(item) {
+    if (renamingId === item.id) return renameRow(item);
+
+    const li = document.createElement('li');
+    const isTodo = item.list === 'todo';
+    const done = isTodo && Boolean(state.done[item.id]);
+    const host = hostOf(item.url);
+    const monogram = item.name.trim().charAt(0).toUpperCase() || '?';
+
+    li.className = `drow${done ? ' is-done' : ''}`;
+    li.dataset.id = item.id;
+    li.draggable = true;
+
+    const lead = isTodo
+      ? `<label class="drow-check">
+           <input type="checkbox" data-act="check" ${done ? 'checked' : ''}>
+           <span class="drow-box" aria-hidden="true"></span>
+           <span class="visually-hidden">Mark ${escapeHtml(item.name)} done</span>
+         </label>`
+      : `<span class="drow-tile" aria-hidden="true">${escapeHtml(monogram)}</span>`;
+
+    const label = `<span class="drow-name">${escapeHtml(item.name)}</span>${
+      host ? `<span class="drow-host">${escapeHtml(host)}</span>` : ''
+    }`;
+
+    const body = item.url
+      ? `<a class="drow-link" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${label}<span class="drow-out" aria-hidden="true">↗</span></a>`
+      : `<span class="drow-link drow-link-none">${label}</span>`;
+
+    li.innerHTML = `
+      ${lead}
+      ${body}
+      <span class="drow-actions">
+        ${editing
+          ? `<button class="drow-btn" type="button" data-act="rename-start" aria-label="Rename ${escapeHtml(item.name)}" title="Rename">✎</button>
+             <button class="drow-btn" type="button" data-act="del" aria-label="Remove ${escapeHtml(item.name)}" title="Remove">✕</button>`
+          : ''}
+        <button class="drow-btn drow-btn-move" type="button" data-act="move"
+          aria-label="${isTodo ? `Take ${escapeHtml(item.name)} off today's list` : `Add ${escapeHtml(item.name)} to today's list`}"
+          title="${isTodo ? 'Take off the list' : 'Add to the list'}">${isTodo ? '←' : '→'}</button>
+      </span>`;
+
+    return li;
+  }
+
+  function render() {
+    dailyList.textContent = '';
+    todoList.textContent = '';
+
+    state.items.forEach((item) => {
+      (item.list === 'todo' ? todoList : dailyList).appendChild(row(item));
+    });
+
+    const daily = state.items.filter((it) => it.list !== 'todo');
+    const todo = state.items.filter((it) => it.list === 'todo');
+
+    countDaily.textContent = daily.length ? String(daily.length) : '';
+    countTodo.textContent = todo.length ? String(todo.length) : '';
+    emptyDaily.hidden = daily.length > 0;
+    emptyTodo.hidden = todo.length > 0;
+
+    updateProgress();
+
+    const focusTarget = root.querySelector('.drow-renaming [name="name"]');
+    if (focusTarget) focusTarget.focus();
+  }
+
+  function updateProgress() {
+    const todo = state.items.filter((it) => it.list === 'todo');
+    const done = todo.filter((it) => state.done[it.id]).length;
+
+    if (!todo.length) {
+      progressEl.textContent = 'Nothing picked yet';
+      progressEl.classList.remove('is-complete');
+    } else if (done === todo.length) {
+      progressEl.textContent = `All ${todo.length} done today`;
+      progressEl.classList.add('is-complete');
+    } else {
+      progressEl.textContent = `${done} of ${todo.length} done today`;
+      progressEl.classList.remove('is-complete');
+    }
+
+    barEl.style.width = todo.length ? `${(done / todo.length) * 100}%` : '0%';
+
+    // Re-arm the celebration as soon as the list is no longer fully ticked.
+    if (!todo.length || done < todo.length) celebrated = false;
+  }
+
   // ---------- interaction ----------
 
   root.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-act]');
-    if (!button || button.tagName === 'FORM') return;
-    const row = button.closest('.daily-row');
-    const item = row ? itemById(row.dataset.id) : null;
-    const act = button.dataset.act;
+    const control = event.target.closest('[data-act]');
+    if (!control || control.tagName === 'FORM') return;
+    const act = control.dataset.act;
 
-    if (act === 'check' && item) {
-      if (button.checked) state.done[item.id] = true;
-      else delete state.done[item.id];
-      state.doneDate = today();
-      save();
-      // Update in place rather than re-rendering, so the checkbox the user just
-      // pressed keeps focus and the tick order stays where they left it.
-      row.classList.toggle('is-done', Boolean(state.done[item.id]));
-      updateProgress();
-      maybeCelebrate();
+    if (act === 'edit-mode') {
+      editing = !editing;
+      renamingId = null;
+      editBtn.setAttribute('aria-pressed', String(editing));
+      editBtn.textContent = editing ? 'Done editing' : 'Edit lists';
+      addForm.hidden = !editing;
+      root.classList.toggle('is-editing', editing);
+      render();
       return;
     }
 
+    if (act === 'reset') {
+      if (!window.confirm('Reset both lists back to the starting nine games?')) return;
+      state = defaultState();
+      renamingId = null;
+      save();
+      render();
+      return;
+    }
+
+    const li = control.closest('.drow');
+    const item = li ? itemById(li.dataset.id) : null;
     if (!item) return;
 
-    if (act === 'move') {
+    if (act === 'check') {
+      if (control.checked) state.done[item.id] = true;
+      else delete state.done[item.id];
+      state.doneDate = today();
+      save();
+      // Update in place so the checkbox keeps focus and nothing jumps around.
+      li.classList.toggle('is-done', Boolean(state.done[item.id]));
+      updateProgress();
+      maybeCelebrate();
+    } else if (act === 'move') {
       item.list = item.list === 'todo' ? 'daily' : 'todo';
-      if (item.list === 'daily') delete state.done[item.id];
+      if (item.list !== 'todo') delete state.done[item.id];
       save();
       render();
       maybeCelebrate();
-    } else if (act === 'edit') {
-      editingId = item.id;
+    } else if (act === 'rename-start') {
+      renamingId = item.id;
       render();
     } else if (act === 'cancel') {
-      editingId = null;
+      renamingId = null;
       render();
     } else if (act === 'del') {
       state.items = state.items.filter((it) => it.id !== item.id);
       delete state.done[item.id];
-      if (editingId === item.id) editingId = null;
+      if (renamingId === item.id) renamingId = null;
       save();
       render();
       maybeCelebrate();
@@ -232,16 +293,15 @@
   root.addEventListener('submit', (event) => {
     const form = event.target;
 
-    if (form.dataset.act === 'save') {
+    if (form.dataset.act === 'rename') {
       event.preventDefault();
-      const row = form.closest('.daily-row');
-      const item = itemById(row.dataset.id);
+      const item = itemById(form.closest('.drow').dataset.id);
       if (!item) return;
       const name = form.elements.name.value.trim();
       if (!name) return;
       item.name = name;
       item.url = tidyUrl(form.elements.url.value);
-      editingId = null;
+      renamingId = null;
       save();
       render();
       return;
@@ -259,31 +319,20 @@
     }
   });
 
-  const resetBtn = root.querySelector('[data-act="reset"]');
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      if (!window.confirm('Reset both lists back to the starting ten games?')) return;
-      state = defaultState();
-      editingId = null;
-      save();
-      render();
-    });
-  }
-
   // ---------- drag and drop ----------
 
   let draggingId = null;
 
   root.addEventListener('dragstart', (event) => {
-    const row = event.target.closest('.daily-row');
-    if (!row) return;
-    draggingId = row.dataset.id;
-    row.classList.add('is-dragging');
+    const li = event.target.closest('.drow');
+    if (!li) return;
+    draggingId = li.dataset.id;
+    li.classList.add('is-dragging');
     event.dataTransfer.effectAllowed = 'move';
     try {
-      event.dataTransfer.setData('text/plain', row.dataset.id);
+      event.dataTransfer.setData('text/plain', li.dataset.id);
     } catch {
-      /* Safari can refuse setData on some element types. draggingId covers it. */
+      /* Safari refuses setData on some elements. draggingId covers it. */
     }
   });
 
@@ -294,32 +343,40 @@
   });
 
   [dailyList, todoList].forEach((list) => {
+    const zone = list.closest('.daily-col');
+
     list.addEventListener('dragover', (event) => {
       if (!draggingId) return;
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
-      list.classList.add('is-dropzone');
+      zone.classList.add('is-dropzone');
     });
 
-    list.addEventListener('dragleave', (event) => {
-      if (!list.contains(event.relatedTarget)) list.classList.remove('is-dropzone');
+    zone.addEventListener('dragover', (event) => {
+      if (!draggingId) return;
+      event.preventDefault();
+      zone.classList.add('is-dropzone');
     });
 
-    list.addEventListener('drop', (event) => {
+    zone.addEventListener('dragleave', (event) => {
+      if (!zone.contains(event.relatedTarget)) zone.classList.remove('is-dropzone');
+    });
+
+    zone.addEventListener('drop', (event) => {
       const id = draggingId || event.dataTransfer.getData('text/plain');
       if (!id) return;
       event.preventDefault();
-      list.classList.remove('is-dropzone');
+      zone.classList.remove('is-dropzone');
 
       const item = itemById(id);
       if (!item) return;
 
       const target = list === todoList ? 'todo' : 'daily';
-      if (item.list !== target && target === 'daily') delete state.done[item.id];
+      if (target !== 'todo') delete state.done[item.id];
       item.list = target;
 
-      // Drop position: before the first row whose midpoint is below the cursor.
-      const rows = [...list.querySelectorAll('.daily-row')].filter((r) => r.dataset.id !== id);
+      // Insert before the first row whose midpoint sits below the cursor.
+      const rows = [...list.querySelectorAll('.drow')].filter((r) => r.dataset.id !== id);
       const before = rows.find((r) => {
         const box = r.getBoundingClientRect();
         return event.clientY < box.top + box.height / 2;
@@ -337,16 +394,15 @@
     });
   });
 
-  // ---------- all done ----------
+  // ---------- everything ticked ----------
 
   function maybeCelebrate() {
     const todo = state.items.filter((it) => it.list === 'todo');
-    if (!todo.length) return;
+    if (!todo.length || celebrated) return;
     if (!todo.every((it) => state.done[it.id])) return;
-    if (celebrated) return;
     celebrated = true;
     fireConfetti();
-    playFanfare();
+    playChime();
   }
 
   function themeColours() {
@@ -378,7 +434,7 @@
     window.addEventListener('resize', size);
 
     const colours = themeColours();
-    const pieces = Array.from({ length: 140 }, () => ({
+    const pieces = Array.from({ length: 150 }, () => ({
       x: Math.random() * window.innerWidth,
       y: -20 - Math.random() * window.innerHeight * 0.5,
       w: 5 + Math.random() * 6,
@@ -422,7 +478,7 @@
     requestAnimationFrame(frame);
   }
 
-  function playFanfare() {
+  function playChime() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
     let audio;

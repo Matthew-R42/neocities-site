@@ -9,24 +9,21 @@
   const sections = [...document.querySelectorAll('.folder')];
 
   function updateResults() {
-    // Daily-game rows are rendered by daily-games.js, so re-query every time.
-    const entries = [...document.querySelectorAll('[data-project-card], [data-daily-row]')];
-    const total = entries.length;
+    const cards = [...document.querySelectorAll('[data-project-card]')];
+    const total = cards.length;
     const query = search.value.trim().toLowerCase();
     let visible = 0;
 
-    entries.forEach((entry) => {
-      const matches = !query || entry.textContent.toLowerCase().includes(query);
-      entry.hidden = !matches;
+    cards.forEach((card) => {
+      const matches = !query || card.textContent.toLowerCase().includes(query);
+      card.hidden = !matches;
       if (matches) visible += 1;
     });
 
     sections.forEach((section) => {
-      const hasVisibleEntry = section.querySelector(
-        '[data-project-card]:not([hidden]), [data-daily-row]:not([hidden])'
-      );
-      if (query && hasVisibleEntry) section.open = true;
-      section.hidden = Boolean(query && !hasVisibleEntry);
+      const hasVisibleCard = section.querySelector('[data-project-card]:not([hidden])');
+      if (query && hasVisibleCard) section.open = true;
+      section.hidden = Boolean(query && !hasVisibleCard);
     });
 
     clear.hidden = !query;
@@ -65,8 +62,6 @@
         ownerProjects.hidden = true;
       });
   }
-
-  document.addEventListener('daily-games:render', updateResults);
 
   updateResults();
 })();

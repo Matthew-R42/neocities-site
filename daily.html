@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Games - mtw4244.work</title>
+<meta name="description" content="A rota of other people's daily puzzles. Pick the ones you want to do today, tick them off, and the last one sets off confetti.">
+<meta property="og:title" content="Daily Games">
+<meta property="og:description" content="A rota of other people's daily puzzles. Pick the ones you want to do today and tick them off.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mtw4244.work/daily">
+<link rel="canonical" href="https://mtw4244.work/daily">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23111%22/><text x=%2250%22 y=%2270%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22700%22 font-size=%2262%22 fill=%22%23fff%22 text-anchor=%22middle%22>M</text></svg>">
+<link rel="stylesheet" href="style.css">
+<script src="theme.js" defer></script>
+<script src="daily-games.js" defer></script>
+</head>
+<body>
+
+<div class="wrap" id="daily-app">
+
+  <header class="topbar">
+    <a class="back" href="/"><span class="chev-l">‹</span> matthew</a>
+    <button class="btn-outline" type="button" data-act="edit-mode" aria-pressed="false">Edit lists</button>
+  </header>
+
+  <h1 class="page-title">Daily Games</h1>
+  <p class="page-lede">
+    Other people's daily puzzles, kept in one place so I stop hunting through
+    bookmarks. Drag the ones I actually want to do today into the second list
+    and tick them off.
+  </p>
+
+  <section class="daily-status" aria-labelledby="daily-status-count">
+    <div class="daily-status-top">
+      <p class="daily-status-count" id="daily-status-count" data-progress aria-live="polite">Nothing picked yet</p>
+      <p class="daily-status-date" data-date></p>
+    </div>
+    <div class="daily-bar" role="presentation"><span class="daily-bar-fill" data-bar></span></div>
+  </section>
+
+  <div class="daily-cols">
+
+    <section class="daily-col">
+      <h2 class="daily-head">All games <span class="daily-count" data-count-daily></span></h2>
+      <ul class="daily-list" data-drop="daily"></ul>
+      <p class="daily-note" data-empty-daily hidden>Everything is on today's list.</p>
+
+      <form class="daily-add" data-act="add" hidden>
+        <input class="daily-input" name="name" type="text" placeholder="Game name" maxlength="60" aria-label="New game name" required>
+        <input class="daily-input" name="url" type="text" inputmode="url" placeholder="https://" maxlength="300" aria-label="New game link">
+        <button class="btn-outline daily-add-btn" type="submit">Add</button>
+      </form>
+    </section>
+
+    <section class="daily-col">
+      <h2 class="daily-head">Ones I want to do <span class="daily-count" data-count-todo></span></h2>
+      <ul class="daily-list daily-list-todo" data-drop="todo"></ul>
+      <p class="daily-drop" data-empty-todo>Drag a game across, or press <span class="daily-kbd">→</span> on its row.</p>
+    </section>
+
+  </div>
+
+  <p class="daily-foot-note">
+    Both lists are saved in this browser only, and the ticks clear overnight.
+    None of these are mine, they all belong to the people who made them.
+  </p>
+
+  <footer>
+    <a href="/">Back</a>
+    <span class="sep">·</span>
+    <button class="daily-reset" type="button" data-act="reset">Reset to the starting nine</button>
+  </footer>
+
+</div>
+
+</body>
+</html>
