@@ -11,8 +11,7 @@
   const DEFAULTS = [
     { name: 'Connections', url: 'https://www.nytimes.com/games/connections' },
     { name: 'Wordle', url: 'https://www.nytimes.com/games/wordle/index.html' },
-    { name: 'Metaflora', url: 'https://metaflora.io/' },
-    { name: 'Metazooa', url: 'https://metazooa.com/' },
+    { name: 'Metaflora', url: 'https://flora.metazooa.com/' },
     { name: 'Flagdoku', url: 'https://flagdoku.com/' },
     { name: 'Scrandle', url: 'https://scrandle.com/' },
     { name: 'Cutle', url: 'https://pfiffel.com/cutle/' },
