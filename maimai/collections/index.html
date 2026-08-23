@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f4ef" />
+    <meta
+      name="description"
+      content="Search maimai titles, icons, name plates, frames, jewels, plates, partners, and legacy big icons."
+    />
+    <title>maimai collection</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="#catalogue">maimai collection</a>
+      <button class="text-button" id="open-sources" type="button">Sources</button>
+    </header>
+
+    <main id="catalogue">
+      <section class="catalogue-heading" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">Player reference</p>
+          <h1 id="page-title">Find a cosmetic</h1>
+        </div>
+        <p class="catalogue-total"><strong id="catalogue-count">0</strong> indexed</p>
+      </section>
+
+      <section class="catalogue-controls" aria-label="Catalogue controls">
+        <label class="search-box" for="catalogue-search">
+          <span aria-hidden="true">⌕</span>
+          <input
+            id="catalogue-search"
+            type="search"
+            autocomplete="off"
+            placeholder="Search Japanese names, unlock conditions, songs, or versions"
+          />
+          <kbd>/</kbd>
+        </label>
+
+        <div class="type-filters" id="type-filters" aria-label="Cosmetic type"></div>
+
+        <section class="acquisition-browser" id="acquisition-browser" aria-label="Browse acquisition methods"></section>
+
+        <details class="more-filters" id="more-filters">
+          <summary>More filters</summary>
+          <div class="filter-fields">
+            <label>
+              <span>Title tier</span>
+              <select id="tier-filter">
+                <option value="all">All tiers</option>
+              </select>
+            </label>
+            <label>
+              <span>Artwork</span>
+              <select id="image-filter">
+                <option value="all">All items</option>
+                <option value="has-image">Has image</option>
+                <option value="no-image">No image</option>
+              </select>
+            </label>
+            <label class="checkbox-label">
+              <input id="retired-filter" type="checkbox" checked />
+              <span>Include retired items</span>
+            </label>
+          </div>
+        </details>
+      </section>
+
+      <p class="context-note" id="context-note" hidden></p>
+
+      <section class="results-section" aria-live="polite" aria-busy="false">
+        <div class="results-heading">
+          <p><strong id="result-count">0</strong> results</p>
+          <button class="clear-button" id="clear-filters" type="button" hidden>Clear filters</button>
+        </div>
+        <div class="result-list" id="result-list"></div>
+        <div class="empty-state" id="empty-state" hidden>
+          <h2>No matches</h2>
+          <p>Try a Japanese name, song name, version, or a broader cosmetic type.</p>
+        </div>
+        <div class="result-pagination" id="result-pagination" hidden>
+          <button class="page-button" id="previous-page" type="button">← Previous</button>
+          <div class="page-controls">
+            <label for="page-size">Items per page</label>
+            <input id="page-size" type="number" min="1" max="10000" step="1" value="50" inputmode="numeric" />
+            <span class="page-status" id="page-status"></span>
+          </div>
+          <button class="page-button" id="next-page" type="button">Next →</button>
+          <button class="load-all-button" id="load-all" type="button">Load all</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>Community-sourced maimai collection reference</span>
+      <button class="text-button" id="open-sources-footer" type="button">View sources</button>
+    </footer>
+
+    <dialog class="sources-dialog" id="sources-dialog" aria-labelledby="sources-title">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Provenance</p>
+          <h2 id="sources-title">Sources</h2>
+        </div>
+        <button class="close-button" id="close-sources" type="button" aria-label="Close sources">×</button>
+      </div>
+      <p>
+        This is a community reference. Japanese names and source wording are retained so entries
+        can be checked against the original pages.
+      </p>
+      <div class="source-list" id="source-list"></div>
+    </dialog>
+
+    <noscript>This catalogue needs JavaScript to search and filter the local data file.</noscript>
+    <script src="data.js?v=20260822-9"></script>
+    <script src="app.js?v=20260822-9"></script>
+  </body>
+</html>
