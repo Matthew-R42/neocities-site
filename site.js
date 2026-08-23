@@ -43,14 +43,25 @@
     search.focus();
   });
 
-  if (ownerProjects && ownerLogin) {
+  const ownerFlag = 'owner-projects';
+  const readFlag = () => {
+    try { return localStorage.getItem(ownerFlag) === '1'; } catch { return false; }
+  };
+  const writeFlag = (on) => {
+    try { on ? localStorage.setItem(ownerFlag, '1') : localStorage.removeItem(ownerFlag); } catch { /* storage blocked */ }
+  };
+
+  // Asking for this while signed out gets a redirect to Access on another
+  // origin, which the browser reports as a CORS failure. redirect: 'manual'
+  // does not suppress it, so only make the request when there is a reason to
+  // think we are the owner: straight after the Access login hop, or because a
+  // previous load worked.
+  const expectOwner = new URLSearchParams(window.location.search).has('owner') || readFlag();
+
+  if (ownerProjects && ownerLogin && expectOwner) {
     fetch('/owner/cards.html', {
       credentials: 'same-origin',
       headers: { Accept: 'text/html' },
-      // Logged out, Access answers with a redirect to a login page on another
-      // origin. Following it fails CORS and logs an error on every visit, so
-      // stop at the redirect and treat it as "not the owner".
-      redirect: 'manual',
     })
       .then((response) => {
         if (!response.ok || !response.headers.get('content-type')?.includes('text/html')) {
@@ -64,10 +75,13 @@
         ownerProjects.hidden = false;
         ownerLogin.textContent = 'Log out';
         ownerLogin.href = '/cdn-cgi/access/logout?returnTo=%2F';
+        writeFlag(true);
         updateResults();
       })
       .catch(() => {
         ownerProjects.hidden = true;
+        // Session gone, so stop asking on future visits until the next login.
+        writeFlag(false);
       });
   }
 
