@@ -531,20 +531,36 @@
       if (!method || (!count && methodId !== state.acquisition)) return '';
       return `<button class="acquisition-method" type="button" data-acquisition="${escapeHtml(method.id)}" aria-pressed="${String(state.acquisition === method.id)}">${escapeHtml(method.label)} <span>${count.toLocaleString()}</span></button>`;
     };
+    const selectedLabel = state.acquisition === 'all'
+      ? ''
+      : acquisitionById.get(state.acquisition)?.label || state.acquisition;
     const groups = acquisitionGroups.map((group, index) => {
       const groupCount = scope.filter((item) => group.methods.some((methodId) => item.acquisitionCategories.includes(methodId))).length;
       if (!groupCount) return '';
-      const active = state.acquisitionGroup === index
-        || (state.acquisition !== 'all' && group.methods.includes(state.acquisition));
-      return `<button class="acquisition-group-tab" type="button" data-acquisition-group="${index}" aria-pressed="${String(active)}">${escapeHtml(group.label)} <span>${groupCount.toLocaleString()}</span></button>`;
+      // A group is expanded only when it was opened deliberately. Holding the
+      // active method keeps the tab highlighted without forcing it back open.
+      const expanded = state.acquisitionGroup === index;
+      const holdsSelection = state.acquisition !== 'all' && group.methods.includes(state.acquisition);
+      const selection = holdsSelection
+        ? `<b class="acquisition-group-selection">${escapeHtml(selectedLabel)}</b>`
+        : '';
+      return `<button class="acquisition-group-tab" type="button" data-acquisition-group="${index}" aria-pressed="${String(expanded || holdsSelection)}" aria-expanded="${String(expanded)}" aria-controls="acquisition-methods" aria-haspopup="true">${escapeHtml(group.label)} <span>${groupCount.toLocaleString()}</span>${selection}</button>`;
     }).filter(Boolean).join('');
-    const selectedGroup = state.acquisitionGroup === null
-      ? acquisitionGroups.find((group) => state.acquisition !== 'all' && group.methods.includes(state.acquisition))
-      : acquisitionGroups[state.acquisitionGroup];
-    const selectedMethods = selectedGroup
-      ? selectedGroup.methods.map(methodButton).filter(Boolean).join('')
+    const openGroup = state.acquisitionGroup === null ? null : acquisitionGroups[state.acquisitionGroup];
+    const openMethods = openGroup ? openGroup.methods.map(methodButton).filter(Boolean).join('') : '';
+    const panel = openGroup && openMethods
+      ? `<div class="acquisition-methods" id="acquisition-methods" role="group" aria-label="${escapeHtml(openGroup.label)} methods"><div class="acquisition-methods-heading"><span>${escapeHtml(openGroup.label)}</span><button class="acquisition-methods-close" type="button" data-acquisition-close>Close</button></div><div class="acquisition-methods-grid">${openMethods}</div></div>`
       : '';
-    $('#acquisition-browser').innerHTML = `<div class="acquisition-browser-heading"><span>Browse acquisition methods</span><button class="acquisition-all-button" type="button" data-acquisition="all" aria-pressed="${String(state.acquisition === 'all')}">All methods <span>${scope.length.toLocaleString()}</span></button></div><div class="acquisition-group-tabs">${groups}</div>${selectedMethods ? `<div class="acquisition-methods">${selectedMethods}</div>` : ''}`;
+    $('#acquisition-browser').innerHTML = `<div class="acquisition-browser-heading" id="acquisition-browser-label">Browse acquisition methods</div><div class="acquisition-group-tabs" role="group" aria-labelledby="acquisition-browser-label"><button class="acquisition-all-button" type="button" data-acquisition="all" aria-pressed="${String(state.acquisition === 'all')}">All methods <span>${scope.length.toLocaleString()}</span></button>${groups}</div>${panel}`;
+  };
+
+  const closeAcquisitionPanel = () => {
+    if (state.acquisitionGroup === null) return false;
+    state.acquisitionGroup = null;
+    // Only redraw the browser. A full render() would rebuild the result list
+    // out from under whatever the user actually clicked on.
+    renderAcquisitionBrowser();
+    return true;
   };
 
   const renderMoreFilters = () => {
@@ -832,19 +848,61 @@
   });
 
   $('#acquisition-browser').addEventListener('click', (event) => {
+    if (event.target.closest('button[data-acquisition-close]')) {
+      const openIndex = state.acquisitionGroup;
+      closeAcquisitionPanel();
+      $(`.acquisition-group-tab[data-acquisition-group="${openIndex}"]`)?.focus();
+      return;
+    }
     const groupButton = event.target.closest('button[data-acquisition-group]');
     if (groupButton) {
       const groupIndex = Number(groupButton.dataset.acquisitionGroup);
+      // Opening a group is just a peek, so it leaves the active method alone.
       state.acquisitionGroup = state.acquisitionGroup === groupIndex ? null : groupIndex;
-      state.acquisition = 'all';
-      render();
+      renderAcquisitionBrowser();
+      // event.detail is 0 for keyboard-activated clicks, so a keyboard user
+      // lands inside the panel while a mouse user keeps their pointer focus.
+      if (state.acquisitionGroup !== null && event.detail === 0) {
+        $('#acquisition-methods .acquisition-method')?.focus();
+      }
       return;
     }
     const button = event.target.closest('button[data-acquisition]');
     if (!button) return;
     state.acquisition = button.dataset.acquisition;
-    if (state.acquisition === 'all') state.acquisitionGroup = null;
+    // Choosing a method answers the question the panel was asking, so close it.
+    state.acquisitionGroup = null;
     resetLimitAndRender();
+  });
+
+  // Capture phase: the DOM is still intact here, so closest() can tell whether
+  // the click started inside the browser before any re-render detaches it.
+  document.addEventListener('click', (event) => {
+    if (state.acquisitionGroup === null) return;
+    if (event.target.closest?.('#acquisition-browser')) return;
+    closeAcquisitionPanel();
+  }, true);
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && state.acquisitionGroup !== null) {
+      const openIndex = state.acquisitionGroup;
+      closeAcquisitionPanel();
+      $(`.acquisition-group-tab[data-acquisition-group="${openIndex}"]`)?.focus();
+      return;
+    }
+    if (!event.key.startsWith('Arrow')) return;
+    const current = event.target.closest?.('#acquisition-methods .acquisition-method');
+    if (!current) return;
+    const methods = [...document.querySelectorAll('#acquisition-methods .acquisition-method')];
+    const grid = $('.acquisition-methods-grid');
+    const columns = getComputedStyle(grid).gridTemplateColumns.split(' ').length || 1;
+    const step = event.key === 'ArrowLeft' ? -1
+      : event.key === 'ArrowRight' ? 1
+        : event.key === 'ArrowUp' ? -columns : columns;
+    const next = methods[methods.indexOf(current) + step];
+    if (!next) return;
+    event.preventDefault();
+    next.focus();
   });
 
   $('#more-filters').addEventListener('change', (event) => {
