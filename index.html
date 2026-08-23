@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>matthew</title>
+<title>matthew - mtw4244.work</title>
 <meta name="description" content="Matthew. Short-form video about AI safety, PDKU fellow July 2026, president of EA UNSW, and small web tools.">
 <meta property="og:title" content="matthew">
 <meta property="og:description" content="Short-form video about AI safety, PDKU fellow July 2026, president of EA UNSW, and small web tools.">
@@ -39,6 +39,7 @@
   </header>
 
   <main id="main-content">
+  <h1 class="visually-hidden">matthew: projects and games</h1>
   <p class="lede">
     I make short-form video about AI safety and alignment, and build the small
     tools that make that work possible. PDKU fellow, July 2026, and president
@@ -57,14 +58,26 @@
       <input id="project-search" class="index-search" type="search" placeholder="Search projects and games" autocomplete="off">
       <button id="project-search-clear" class="index-search-clear" type="button" hidden>Clear</button>
     </div>
-    <p id="project-search-status" class="index-search-status" aria-live="polite">10 projects and games</p>
+    <p id="project-search-status" class="index-search-status" aria-live="polite">11 projects and games</p>
   </div>
 
   <details class="folder" id="projects" open>
-    <summary class="folder-summary"><span class="dot"></span>Projects<span class="folder-chev" aria-hidden="true">›</span></summary>
+    <summary class="folder-summary"><span class="dot"></span><h2 class="folder-heading">Projects</h2><span class="folder-chev" aria-hidden="true">›</span></summary>
     <div class="grid">
 
       <div id="owner-projects" class="owner-projects" hidden></div>
+
+      <a class="card" data-project-card href="/roller">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 20 3 17V4l6 3"/><path d="m9 20 6-3V4L9 7"/><path d="m15 17 6 3V7l-6-3"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>RollerMap <span class="chev">›</span></h3>
+          <p>Rate street pavement quality block by block, 1 for glass, 5 for go around. Built for rollerblading around Sydney.</p>
+        </div>
+      </a>
 
       <a class="card" data-project-card href="/clock">
         <div class="card-icon" aria-hidden="true">
@@ -94,7 +107,7 @@
   </details>
 
   <details class="folder" id="single-player">
-    <summary class="folder-summary"><span class="dot"></span>Single-player games<span class="folder-chev" aria-hidden="true">›</span></summary>
+    <summary class="folder-summary"><span class="dot"></span><h2 class="folder-heading">Single-player games</h2><span class="folder-chev" aria-hidden="true">›</span></summary>
     <div class="grid">
 
       <a class="card" data-project-card href="/minesweeper">
@@ -149,7 +162,7 @@
   </details>
 
   <details class="folder" id="multiplayer">
-    <summary class="folder-summary"><span class="dot"></span>Multiplayer games<span class="folder-chev" aria-hidden="true">›</span></summary>
+    <summary class="folder-summary"><span class="dot"></span><h2 class="folder-heading">Multiplayer games</h2><span class="folder-chev" aria-hidden="true">›</span></summary>
     <div class="grid">
 
       <a class="card" data-project-card href="/imposter">
@@ -176,14 +189,14 @@
         </div>
       </a>
 
-      <a class="card" data-project-card href="/contact">
+      <a class="card" data-project-card href="/contactgame">
         <div class="card-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 4h16v12H8l-4 4z"/>
           </svg>
         </div>
         <div class="card-body">
-          <h3>Contact <span class="chev">›</span></h3>
+          <h3>Contact Game <span class="chev">›</span></h3>
           <p>One Thinker holds a secret word. Everyone else guesses from the first letter, racing to say "contact" first.</p>
         </div>
       </a>

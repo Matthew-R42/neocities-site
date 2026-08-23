@@ -7,6 +7,9 @@
   if (!search || !clear || !status) return;
 
   const sections = [...document.querySelectorAll('.folder')];
+  // Searching opens a collapsed folder to reveal a match, so remember how each
+  // one started and put it back when the query is cleared.
+  const initiallyOpen = new Map(sections.map((section) => [section, section.open]));
 
   function updateResults() {
     const cards = [...document.querySelectorAll('[data-project-card]')];
@@ -23,6 +26,7 @@
     sections.forEach((section) => {
       const hasVisibleCard = section.querySelector('[data-project-card]:not([hidden])');
       if (query && hasVisibleCard) section.open = true;
+      if (!query) section.open = initiallyOpen.get(section);
       section.hidden = Boolean(query && !hasVisibleCard);
     });
 
@@ -43,6 +47,10 @@
     fetch('/owner/cards.html', {
       credentials: 'same-origin',
       headers: { Accept: 'text/html' },
+      // Logged out, Access answers with a redirect to a login page on another
+      // origin. Following it fails CORS and logs an error on every visit, so
+      // stop at the redirect and treat it as "not the owner".
+      redirect: 'manual',
     })
       .then((response) => {
         if (!response.ok || !response.headers.get('content-type')?.includes('text/html')) {
