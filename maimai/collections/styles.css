@@ -68,6 +68,21 @@ main {
   border-bottom: 1px solid var(--line);
 }
 
+.header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.header-up {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.header-up:hover { color: var(--ink); }
+
 .wordmark {
   color: var(--ink);
   font-size: 0.95rem;
