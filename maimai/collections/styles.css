@@ -5,6 +5,7 @@
   --ink: #171713;
   --muted: #686861;
   --line: #d9d7d0;
+  --line-strong: #b9b6ac;
   --soft-line: #e9e7e1;
   --accent: #d8ff5f;
   --accent-ink: #253000;
@@ -67,6 +68,38 @@ main {
   justify-content: space-between;
   border-bottom: 1px solid var(--line);
 }
+
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  transform: translateY(-200%);
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 0.16s ease;
+}
+
+.skip-link:focus { transform: translateY(0); }
+
+.header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.header-up {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.header-up:hover { color: var(--ink); }
 
 .wordmark {
   color: var(--ink);
@@ -229,19 +262,13 @@ h1 {
 }
 
 .acquisition-browser {
+  position: relative;
   margin-top: 14px;
   border-top: 1px solid var(--line);
 }
 
 .acquisition-browser-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 11px 0;
-}
-
-.acquisition-browser-heading > span {
+  padding: 11px 0 7px;
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 700;
@@ -257,10 +284,15 @@ h1 {
   text-align: left;
 }
 
+/* Sits at the head of the group row as the reset, so it needs the same chip
+   treatment as the tabs beside it rather than reading as a stray label. */
 .acquisition-all-button {
-  padding: 5px 7px;
+  flex: 0 0 auto;
+  min-height: 33px;
+  padding: 5px 9px;
+  border-color: var(--line);
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 750;
 }
 
 .acquisition-all-button span,
@@ -279,13 +311,16 @@ h1 {
 }
 
 .acquisition-group-tabs {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
   gap: 5px;
   padding-bottom: 11px;
 }
 
 .acquisition-group-tab {
+  flex: 1 1 auto;
+  min-width: 150px;
   min-height: 33px;
   padding: 5px 7px;
   color: var(--ink);
@@ -296,6 +331,15 @@ h1 {
   font-size: 0.8rem;
   font-weight: 750;
   text-align: left;
+}
+
+/* The method held by this group, so the choice stays readable once the panel
+   is closed. */
+.acquisition-group-selection {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .acquisition-group-tab span {
@@ -310,21 +354,59 @@ h1 {
   border-color: var(--accent-ink);
 }
 
+/* Overlaid rather than inline: the controls block is sticky, so growing it
+   inline pushed the results down and pinned a tall header over the page. */
 .acquisition-methods {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
-  padding: 0 0 11px;
-  border-top: 1px solid var(--line);
-  padding-top: 9px;
+  position: absolute;
+  z-index: 20;
+  top: calc(100% - 5px);
+  left: 0;
+  right: 0;
+  max-height: min(52vh, 400px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 9px 11px 11px;
+  background: var(--background);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: 0 16px 40px rgba(20, 20, 16, 0.16);
 }
 
-.acquisition-methods::before {
-  content: 'Choose a method';
-  grid-column: 1 / -1;
+.acquisition-methods-heading {
+  position: sticky;
+  top: -9px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -9px -11px 7px;
+  padding: 9px 11px 7px;
+  background: var(--background);
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 700;
+}
+
+.acquisition-methods-close {
+  padding: 2px 7px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.acquisition-methods-close:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.acquisition-methods-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
 }
 
 .acquisition-method {
@@ -343,8 +425,12 @@ h1 {
   font-size: 0.8rem;
 }
 
+/* min-height keeps these above the 24px minimum target size. */
 .more-filters > summary {
+  display: flex;
+  align-items: center;
   width: max-content;
+  min-height: 26px;
   color: var(--muted);
 }
 
@@ -379,7 +465,9 @@ h1 {
   display: flex;
   align-items: center;
   gap: 7px;
+  min-height: 26px;
   padding-bottom: 8px;
+  cursor: pointer;
 }
 
 .checkbox-label input {
@@ -1012,11 +1100,11 @@ noscript {
     gap: 10px;
   }
 
-  .acquisition-group-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .acquisition-group-tab {
+    min-width: calc(50% - 3px);
   }
 
-  .acquisition-methods {
+  .acquisition-methods-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

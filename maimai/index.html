@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mai Mai - mtw4244.work</title>
+<meta name="description" content="Mai Mai venue lists for Australia and a searchable catalogue of maimai cosmetics.">
+<meta property="og:title" content="Mai Mai">
+<meta property="og:description" content="Mai Mai venue lists for Australia and a searchable catalogue of maimai cosmetics.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mtw4244.work/maimai/">
+<meta name="theme-color" content="#000000">
+<link rel="canonical" href="https://mtw4244.work/maimai/">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23111%22/><text x=%2250%22 y=%2270%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22700%22 font-size=%2262%22 fill=%22%23fff%22 text-anchor=%22middle%22>M</text></svg>">
+<link rel="stylesheet" href="/style.css?v=49e5d2ed">
+<script src="/theme.js?v=3f6a1ac3" defer></script>
+<style>
+  .card-body p.mai-hub-note {
+    color: var(--dim);
+    font-size: 12.5px;
+    margin-top: 12px;
+  }
+
+  .mai-hub-sub-label {
+    color: var(--muted);
+    font-size: 12.5px;
+    margin: 30px 0 0;
+  }
+
+  .mai-hub-sub {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 0;
+  }
+
+  .mai-hub-sub a {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 6px 11px;
+    text-decoration: none;
+  }
+
+  .mai-hub-sub a:hover {
+    border-color: var(--line-hover);
+    color: var(--fg);
+  }
+
+  .mai-hub-sub b {
+    color: var(--fg);
+    font-weight: 620;
+    margin-left: 4px;
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to page content</a>
+
+<div class="wrap">
+
+  <header class="topbar">
+    <a class="back" href="/"><span class="chev-l">‹</span> matthew</a>
+    <div class="links">
+      <a class="btn-outline" href="/contacts">Contacts</a>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <h1 class="page-title">Mai Mai</h1>
+    <p class="page-lede">Two things live here: where to play maimai in Australia, and what every cosmetic in the game is called and how to unlock it.</p>
+
+    <div class="grid">
+
+      <a class="card" href="/maimai/venues/australia/">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>Venues <span class="chev">›</span></h3>
+          <p>Arcades with maimai cabinets, grouped by state, with a map on every page.</p>
+          <p class="mai-hub-note" id="mai-hub-venue-count"></p>
+        </div>
+      </a>
+
+      <a class="card" href="/maimai/collections/">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>Collections <span class="chev">›</span></h3>
+          <p>Searchable catalogue of cosmetics: titles, icons, name plates, frames, jewels, plates, partners and legacy big icons, each with its unlock condition and a source.</p>
+          <p class="mai-hub-note">Search in Japanese or English.</p>
+        </div>
+      </a>
+
+    </div>
+
+    <p class="mai-hub-sub-label">Straight to a state</p>
+    <nav class="mai-hub-sub" id="mai-hub-states" aria-label="Venue regions"><a href="/maimai/venues/sydney/">Sydney / NSW</a><a href="/maimai/venues/qld/">Queensland</a><a href="/maimai/venues/sa/">South Australia</a><a href="/maimai/venues/vic/">Victoria</a><a href="/maimai/venues/act/">ACT</a><a href="/maimai/venues/wa/">Western Australia</a></nav>
+  </main>
+
+  <footer>
+    <a href="/">Home</a>
+    <span class="sep">·</span>
+    <a href="/contacts">Contacts</a>
+  </footer>
+
+</div>
+
+<script src="/maimai-australia.js?v=51286cb1"></script>
+<script>
+  (function () {
+    if (typeof MAI_AUSTRALIA_STATES === 'undefined' || !Array.isArray(MAI_AUSTRALIA_STATES)) return;
+    var states = MAI_AUSTRALIA_STATES;
+
+    var total = states.reduce(function (sum, state) { return sum + state.venues.length; }, 0);
+    var count = document.getElementById('mai-hub-venue-count');
+    if (count) count.textContent = total + ' venues across ' + states.length + ' states and territories.';
+
+    var nav = document.getElementById('mai-hub-states');
+    if (!nav) return;
+
+    nav.innerHTML = states.map(function (state) {
+      var safe = document.createElement('div');
+      safe.textContent = state.label;
+      return '<a href="' + state.path + '">' + safe.innerHTML + '<b>' + state.venues.length + '</b></a>';
+    }).join('');
+  })();
+</script>
+</body>
+</html>

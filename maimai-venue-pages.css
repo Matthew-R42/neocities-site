@@ -20,6 +20,14 @@
   color: var(--fg);
 }
 
+.mai-au-nav a.mai-au-nav-up {
+  border-color: transparent;
+  padding-left: 0;
+  padding-right: 4px;
+}
+
+.mai-au-nav a.mai-au-nav-up:hover { border-color: transparent; }
+
 .mai-au-states {
   display: grid;
   gap: 10px;

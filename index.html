@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>matthew</title>
+<title>matthew - mtw4244.work</title>
 <meta name="description" content="Matthew. Short-form video about AI safety, PDKU fellow July 2026, president of EA UNSW, and small web tools.">
 <meta property="og:title" content="matthew">
 <meta property="og:description" content="Short-form video about AI safety, PDKU fellow July 2026, president of EA UNSW, and small web tools.">
@@ -13,9 +13,9 @@
 <link rel="canonical" href="https://mtw4244.work/">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23111%22/><text x=%2250%22 y=%2270%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22700%22 font-size=%2262%22 fill=%22%23fff%22 text-anchor=%22middle%22>M</text></svg>">
-<link rel="stylesheet" href="style.css">
-<script src="theme.js" defer></script>
-<script src="site.js" defer></script>
+<link rel="stylesheet" href="style.css?v=49e5d2ed">
+<script src="theme.js?v=3f6a1ac3" defer></script>
+<script src="site.js?v=45ab9cda" defer></script>
 </head>
 <body>
 
@@ -39,6 +39,7 @@
   </header>
 
   <main id="main-content">
+  <h1 class="visually-hidden">matthew: projects and games</h1>
   <p class="lede">
     I make short-form video about AI safety and alignment, and build the small
     tools that make that work possible. PDKU fellow, July 2026, and president
@@ -57,14 +58,26 @@
       <input id="project-search" class="index-search" type="search" placeholder="Search projects and games" autocomplete="off">
       <button id="project-search-clear" class="index-search-clear" type="button" hidden>Clear</button>
     </div>
-    <p id="project-search-status" class="index-search-status" aria-live="polite">10 projects and games</p>
+    <p id="project-search-status" class="index-search-status" aria-live="polite">11 projects and games</p>
   </div>
 
   <details class="folder" id="projects" open>
-    <summary class="folder-summary"><span class="dot"></span>Projects<span class="folder-chev" aria-hidden="true">›</span></summary>
+    <summary class="folder-summary"><span class="dot"></span><h2 class="folder-heading">Projects</h2><span class="folder-chev" aria-hidden="true">›</span></summary>
     <div class="grid">
 
       <div id="owner-projects" class="owner-projects" hidden></div>
+
+      <a class="card" data-project-card href="/roller">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 20 3 17V4l6 3"/><path d="m9 20 6-3V4L9 7"/><path d="m15 17 6 3V7l-6-3"/>
+          </svg>
+        </div>
+        <div class="card-body">
+          <h3>RollerMap <span class="chev">›</span></h3>
+          <p>Rate street pavement quality block by block, 1 for glass, 5 for go around. Built for rollerblading around Sydney.</p>
+        </div>
+      </a>
 
       <a class="card" data-project-card href="/clock">
         <div class="card-icon" aria-hidden="true">
@@ -78,7 +91,7 @@
         </div>
       </a>
 
-      <a class="card" data-project-card href="/maimai">
+      <a class="card" data-project-card href="/maimai/">
         <div class="card-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.5"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/>
@@ -86,7 +99,7 @@
         </div>
         <div class="card-body">
           <h3>Mai Mai <span class="chev">›</span></h3>
-          <p>My Sydney maimai venue list, cross-checked against the Google Maps source list and exportable when it changes.</p>
+          <p>Where to play maimai in Australia, by state and on a map, plus a searchable catalogue of every title, icon, name plate and frame in the game.</p>
         </div>
       </a>
 
@@ -94,7 +107,7 @@
   </details>
 
   <details class="folder" id="single-player">
-    <summary class="folder-summary"><span class="dot"></span>Single-player games<span class="folder-chev" aria-hidden="true">›</span></summary>
+    <summary class="folder-summary"><span class="dot"></span><h2 class="folder-heading">Single-player games</h2><span class="folder-chev" aria-hidden="true">›</span></summary>
     <div class="grid">
 
       <a class="card" data-project-card href="/minesweeper">
@@ -149,7 +162,7 @@
   </details>
 
   <details class="folder" id="multiplayer">
-    <summary class="folder-summary"><span class="dot"></span>Multiplayer games<span class="folder-chev" aria-hidden="true">›</span></summary>
+    <summary class="folder-summary"><span class="dot"></span><h2 class="folder-heading">Multiplayer games</h2><span class="folder-chev" aria-hidden="true">›</span></summary>
     <div class="grid">
 
       <a class="card" data-project-card href="/imposter">
@@ -176,14 +189,14 @@
         </div>
       </a>
 
-      <a class="card" data-project-card href="/contact">
+      <a class="card" data-project-card href="/contactgame">
         <div class="card-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 4h16v12H8l-4 4z"/>
           </svg>
         </div>
         <div class="card-body">
-          <h3>Contact <span class="chev">›</span></h3>
+          <h3>Contact Game <span class="chev">›</span></h3>
           <p>One Thinker holds a secret word. Everyone else guesses from the first letter, racing to say "contact" first.</p>
         </div>
       </a>

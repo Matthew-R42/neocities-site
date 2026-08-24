@@ -161,6 +161,7 @@ function renderMaiAustraliaNav() {
 
   const australiaCurrent = maiAustraliaStateKey === 'australia';
   nav.innerHTML = [
+    '<a class="mai-au-nav-up" href="/maimai/">‹ Mai Mai</a>',
     `<a href="/maimai/venues/australia/"${australiaCurrent ? ' aria-current="page"' : ''}>Australia</a>`,
     ...MAI_AUSTRALIA_STATES.map((state) => `<a href="${state.path}"${state.key === maiAustraliaStateKey ? ' aria-current="page"' : ''}>${escapeMaiAustraliaHtml(state.label)}</a>`),
   ].join('');

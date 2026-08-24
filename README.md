@@ -40,13 +40,21 @@ Live at https://mtw4244.work, served by Cloudflare Pages.
 
 ## Deploying
 
-Uploads the three files as-is. No build step.
+Uploads the files as-is. No build step, but stamp the asset versions first.
 
 ```sh
+python3 tools/stamp-asset-versions.py
 export CLOUDFLARE_ACCOUNT_ID=<account id>
 export CLOUDFLARE_API_TOKEN=<scoped token with Pages:Edit>
 npx wrangler pages deploy . --project-name=mtw4244-site --branch=main
 ```
+
+`_headers` sets pages to revalidate on every request, so a deploy is live
+straight away. It cannot do the same for css and js: Pages applies its own
+four hour Cache-Control to those and it wins over `_headers`. Instead each
+asset URL carries a hash of the file, which the stamp script keeps current.
+Skip the script after editing css or js and returning visitors keep the old
+one for up to four hours. `--check` exits 1 when a page is out of date.
 
 Use a scoped API token, not the account-wide Global API Key. Create one at
 Cloudflare → My Profile → API Tokens with the "Cloudflare Pages: Edit"

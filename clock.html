@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>World Clock</title>
+<title>World Clock - mtw4244.work</title>
 <meta name="description" content="World Clock. Add cities to a world map and watch their local time and temperature. No account, no build step, saved in your browser.">
 <meta property="og:title" content="World Clock">
 <meta property="og:description" content="World Clock. Add cities to a world map and watch their local time and temperature. No account, no build step, saved in your browser.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mtw4244.work/clock">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23111%22/><text x=%2250%22 y=%2270%22 font-family=%22Arial, Helvetica, sans-serif%22 font-weight=%22700%22 font-size=%2262%22 fill=%22%23fff%22 text-anchor=%22middle%22>M</text></svg>">
-<link rel="stylesheet" href="style.css">
-<script src="theme.js" defer></script>
+<link rel="canonical" href="https://mtw4244.work/clock">
+<link rel="stylesheet" href="style.css?v=49e5d2ed">
+<script src="theme.js?v=3f6a1ac3" defer></script>
 <style>
   /* ---------- search ---------- */
   .wc-search { position: relative; max-width: 420px; margin-bottom: 20px; }
@@ -116,7 +117,7 @@
   }
 
   .wc-settings[hidden] { display: none; }
-  .wc-settings h2 { font-size: 12.5px; font-weight: 650; margin: 0 0 12px; color: var(--fg); }
+  .wc-settings .wc-set-title { font-size: 12.5px; font-weight: 650; margin: 0 0 12px; color: var(--fg); }
   .wc-set-row { margin-bottom: 12px; }
   .wc-set-row:last-child { margin-bottom: 0; }
   .wc-set-row label { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
@@ -336,6 +337,8 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main-content">Skip to page content</a>
+
 <div class="wrap">
 
   <header class="topbar">
@@ -349,7 +352,7 @@
         </svg>
       </button>
       <div id="wcSettings" class="wc-settings" role="dialog" aria-label="Daylight overlay settings" hidden>
-        <h2>Daylight overlay</h2>
+        <p class="wc-set-title">Daylight overlay</p>
         <div class="wc-set-row">
           <label for="wcBrightness"><span>Brightness</span><span id="wcBrightnessVal">45</span></label>
           <input id="wcBrightness" type="range" min="0" max="100" step="1" value="45">
@@ -361,6 +364,8 @@
       </div>
     </div>
   </header>
+
+  <main id="main-content">
 
   <h1 class="page-title">World Clock</h1>
   <p class="page-lede">Search for a city and it lands on the map. Hover a dot for the local time and current temperature, click it to take it off again. Your cities are saved in this browser only.</p>
@@ -392,6 +397,14 @@
 <div id="wcToast" class="wc-toast">
   <span id="wcToastText"></span>
   <button id="wcUndo" class="wc-undo" type="button">Undo</button>
+  </main>
+
+  <footer>
+    <a href="/">Home</a>
+    <span class="sep">·</span>
+    <a href="/contacts">Contacts</a>
+  </footer>
+
 </div>
 
 <script>

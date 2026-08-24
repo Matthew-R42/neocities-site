@@ -1,0 +1,28 @@
+# Pages defaults every response to "public, max-age=14400, must-revalidate".
+# must-revalidate only bites once the freshness window is over, so for four
+# hours after a deploy the edge and the browser both kept serving the previous
+# version without asking.
+#
+# max-age=0 makes a response stale on arrival, so must-revalidate turns every
+# request into a conditional one. Unchanged pages come back as a 304 with no
+# body, which is cheap, and a deploy is visible straight away.
+#
+# This reaches documents only. Pages applies its own Cache-Control to css/js
+# and image responses and that wins over anything asked for here, whether the
+# rule is a bare /*, an exact path, or an extension pattern. Those are handled
+# instead by putting a content hash in the URL, which changes whenever the file
+# does, so a stale copy is never the one a page asks for:
+#
+#     python3 tools/stamp-asset-versions.py
+#
+# Run that before deploying. tools/stamp-asset-versions.py --check exits 1 if a
+# page still points at an out of date hash.
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+# The riichi bundle is a webpack build with content hashes in the filenames
+# already, so a changed file is always a new URL and these can be cached hard.
+# A longer max-age than the default is one of the few things Pages does honour
+# for assets.
+/riichi/static/*
+  Cache-Control: public, max-age=31536000, immutable
