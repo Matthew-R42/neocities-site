@@ -1,0 +1,3 @@
+# Word Game Contact moved off /contact so it stops colliding with /contacts.
+/contact     /word-game-contact     301
+/contact.html /word-game-contact    301
